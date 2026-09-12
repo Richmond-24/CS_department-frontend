@@ -14,7 +14,7 @@ const resources = [
     description:
       "Access important academic resources, guides, and information designed to support your student journey.",
     button: "Explore Resources",
-    href: "#resources/resources",
+    href: "#",
   },
   {
     icon: CalendarDays,

@@ -1,7 +1,9 @@
 @import 'tailwindcss';
 
 :root {
-  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Primary site font: Lufga. Place font files in public/fonts/ (woff2 preferred).
+     If you don't have Lufga files, the browser will fall back to Inter/Segoe UI/etc. */
+  font-family: Lufga, Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: #0f172a;
@@ -11,6 +13,30 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* -------------------------------------------------------------
+   Lufga @font-face (add your font files under public/fonts/)
+   Example files: public/fonts/Lufga-Regular.woff2
+                public/fonts/Lufga-Bold.woff2
+   If you don't have these files, the browser will use the fallback fonts.
+-------------------------------------------------------------- */
+@font-face {
+  font-family: 'Lufga';
+  src: url('/fonts/Lufga-Regular.woff2') format('woff2'),
+       url('/fonts/Lufga-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lufga';
+  src: url('/fonts/Lufga-Bold.woff2') format('woff2'),
+       url('/fonts/Lufga-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 * {
@@ -38,4 +64,116 @@ input {
 
 #root {
   min-height: 100vh;
+}
+
+.page-shell {
+  width: 100%;
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.75s ease,
+    transform 0.8s ease;
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-shell > * {
+  animation: revealIn 0.7s ease both;
+}
+
+@keyframes revealIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.route-loader {
+  display: flex;
+  min-height: 420px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: linear-gradient(180deg, rgba(230, 247, 255, 0.7), rgba(255, 255, 255, 0.95));
+  padding: 2rem;
+  animation: fadeInLoader 0.35s ease-out;
+}
+
+.route-loader__spinner {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  border: 5px solid rgba(32, 59, 130, 0.12);
+  border-top-color: #203b82;
+  border-right-color: #26b4ff;
+  animation: spinLoader 0.9s linear infinite;
+  box-shadow: 0 14px 28px rgba(32, 59, 130, 0.14);
+}
+
+.route-loader__spinner::before,
+.route-loader__spinner::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: rgba(38, 180, 255, 0.9);
+  animation: spinLoader 1.25s linear infinite reverse;
+}
+
+.route-loader__spinner::after {
+  inset: 28px;
+  border-top-color: rgba(32, 59, 130, 0.8);
+}
+
+.route-loader__label {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #203b82;
+}
+
+@keyframes spinLoader {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInLoader {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slider progress animation (used by homepage) */
+@keyframes sliderProgress {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
 }
