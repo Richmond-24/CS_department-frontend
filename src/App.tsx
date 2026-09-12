@@ -54,6 +54,15 @@ function App() {
     }, 700)
   }, [])
 
+  // Scroll to top whenever the active route actually changes — this fires
+  // regardless of *how* navigation happened (button clicks via openSection,
+  // plain <a href="#..."> links, or the browser back/forward button, all of
+  // which update activeRoute one way or another). Putting the scroll reset
+  // here instead of inside openSection is what makes it catch every case.
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [activeRoute])
+
   const programmePath =
     activeRoute === '#undergraduate'
       ? '/undergraduate'
