@@ -1,59 +1,55 @@
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowLeft,
   Check,
   X,
   XCircle,
-  ChevronRight,
   AlertTriangle,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
-// ---------------------------------------------------------------------------
-// Grade scale + eligibility / CS-area-matching logic
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// GRADE SCALE — single source of truth
+// ===========================================================================
 
-type Grade = "A1" | "B2" | "B3" | "C4" | "C5" | "C6" | "D7" | "E8" | "F9" | "";
+const GRADE_INFO = {
+  A1: { rank: 1, points: 8 },
+  B2: { rank: 2, points: 7 },
+  B3: { rank: 3, points: 6 },
+  C4: { rank: 4, points: 5 },
+  C5: { rank: 5, points: 4 },
+  C6: { rank: 6, points: 3 },
+  D7: { rank: 7, points: 2 },
+  E8: { rank: 8, points: 1 },
+  F9: { rank: 9, points: 0 },
+} as const;
 
-const GRADE_OPTIONS: Grade[] = ["A1", "B2", "B3", "C4", "C5", "C6", "D7", "E8", "F9"];
+type GradeKey = keyof typeof GRADE_INFO;
+type Grade = GradeKey | "";
 
-const GRADE_POINTS: Record<Exclude<Grade, "">, number> = {
-  A1: 8,
-  B2: 7,
-  B3: 6,
-  C4: 5,
-  C5: 4,
-  C6: 3,
-  D7: 2,
-  E8: 1,
-  F9: 0,
-};
+const GRADE_OPTIONS = Object.keys(GRADE_INFO) as GradeKey[];
 
 function getGradeRank(grade: Grade): number {
-  const ranks: Record<Exclude<Grade, "">, number> = {
-    A1: 1,
-    B2: 2,
-    B3: 3,
-    C4: 4,
-    C5: 5,
-    C6: 6,
-    D7: 7,
-    E8: 8,
-    F9: 9,
-  };
-  if (!grade) return 99;
-  return ranks[grade];
-}
-
-function isQualifyingGrade(grade: Grade): boolean {
-  const rank = getGradeRank(grade);
-  return rank >= 1 && rank <= 6;
+  if (!grade) return Number.POSITIVE_INFINITY;
+  return GRADE_INFO[grade].rank;
 }
 
 function gradePoints(grade: Grade): number {
   if (!grade) return 0;
-  return GRADE_POINTS[grade];
+  return GRADE_INFO[grade].points;
 }
+
+function isQualifyingGrade(grade: Grade): boolean {
+  if (!grade) return false;
+  const { rank } = GRADE_INFO[grade];
+  return rank >= 1 && rank <= 6;
+}
+
+// ===========================================================================
+// ELIGIBILITY LOGIC
+// ===========================================================================
 
 interface EligibilityFormData {
   english: Grade;
@@ -86,6 +82,7 @@ const EMPTY_FORM: EligibilityFormData = {
 };
 
 interface SubjectCheck {
+  id: string;
   label: string;
   grade: Grade;
   required: boolean;
@@ -106,12 +103,13 @@ interface EligibilityResult {
 
 function checkEligibility(form: EligibilityFormData): EligibilityResult {
   const coreSubjects: SubjectCheck[] = [
-    { label: "English Language", grade: form.english, required: true, passed: isQualifyingGrade(form.english) },
-    { label: "Mathematics (Core)", grade: form.mathCore, required: true, passed: isQualifyingGrade(form.mathCore) },
-    { label: "Integrated Science", grade: form.integratedScience, required: true, passed: isQualifyingGrade(form.integratedScience) },
+    { id: "english", label: "English Language", grade: form.english, required: true, passed: isQualifyingGrade(form.english) },
+    { id: "math-core", label: "Mathematics (Core)", grade: form.mathCore, required: true, passed: isQualifyingGrade(form.mathCore) },
+    { id: "integrated-science", label: "Integrated Science", grade: form.integratedScience, required: true, passed: isQualifyingGrade(form.integratedScience) },
   ];
 
   const mathElective: SubjectCheck = {
+    id: "math-elective",
     label: "Mathematics (Elective)",
     grade: form.mathElective,
     required: true,
@@ -119,14 +117,15 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
   };
 
   const rawOtherElectives: SubjectCheck[] = [
-    { label: "Physics", grade: form.physics, required: false, passed: isQualifyingGrade(form.physics) },
-    { label: "Chemistry", grade: form.chemistry, required: false, passed: isQualifyingGrade(form.chemistry) },
-    { label: "Biology", grade: form.biology, required: false, passed: isQualifyingGrade(form.biology) },
-    { label: "Elective ICT", grade: form.electiveIct, required: false, passed: isQualifyingGrade(form.electiveIct) },
+    { id: "physics", label: "Physics", grade: form.physics, required: false, passed: isQualifyingGrade(form.physics) },
+    { id: "chemistry", label: "Chemistry", grade: form.chemistry, required: false, passed: isQualifyingGrade(form.chemistry) },
+    { id: "biology", label: "Biology", grade: form.biology, required: false, passed: isQualifyingGrade(form.biology) },
+    { id: "elective-ict", label: "Elective ICT", grade: form.electiveIct, required: false, passed: isQualifyingGrade(form.electiveIct) },
   ];
 
   if (form.customElective1Name.trim() && form.customElective1Grade !== "") {
     rawOtherElectives.push({
+      id: "custom-1",
       label: form.customElective1Name.trim(),
       grade: form.customElective1Grade,
       required: false,
@@ -136,6 +135,7 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
 
   if (form.customElective2Name.trim() && form.customElective2Grade !== "") {
     rawOtherElectives.push({
+      id: "custom-2",
       label: form.customElective2Name.trim(),
       grade: form.customElective2Grade,
       required: false,
@@ -149,21 +149,24 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
 
   const isIncomplete = totalElectivesEntered < 3 || !hasElectiveMath;
 
-  filledOtherElectives.sort((a, b) => getGradeRank(a.grade) - getGradeRank(b.grade));
-  const top2Electives = filledOtherElectives.slice(0, 2);
+  const top2Electives = [...filledOtherElectives]
+    .sort((a, b) => getGradeRank(a.grade) - getGradeRank(b.grade))
+    .slice(0, 2);
+  const top2Ids = new Set(top2Electives.map((s) => s.id));
 
   const missingCore = coreSubjects.some((s) => !s.passed);
   const missingMathElective = !mathElective.passed;
   const qualifyingTop2Count = top2Electives.filter((s) => s.passed).length;
 
-  const eligible = !isIncomplete && !missingCore && !missingMathElective && qualifyingTop2Count >= 2;
+  const eligible =
+    !isIncomplete && !missingCore && !missingMathElective && qualifyingTop2Count >= 2;
 
   const subjects: SubjectCheck[] = [
     ...coreSubjects.map((s) => ({ ...s, isEvaluatedInTop6: true })),
     { ...mathElective, isEvaluatedInTop6: true },
     ...rawOtherElectives.map((s) => ({
       ...s,
-      isEvaluatedInTop6: top2Electives.some((t) => t.label === s.label && t.grade === s.grade),
+      isEvaluatedInTop6: top2Ids.has(s.id),
     })),
   ];
 
@@ -178,6 +181,10 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
     isIncomplete,
   };
 }
+
+// ===========================================================================
+// CS AREA MATCHING
+// ===========================================================================
 
 interface AreaMatch {
   key: string;
@@ -195,6 +202,24 @@ function fitLabelFor(percent: number): AreaMatch["fitLabel"] {
   return "Exploratory";
 }
 
+function toArea(
+  key: string,
+  name: string,
+  rawPercent: number,
+  description: string,
+  careers: string[],
+): AreaMatch {
+  const fitPercent = Math.round(rawPercent);
+  return {
+    key,
+    name,
+    fitPercent,
+    fitLabel: fitLabelFor(fitPercent),
+    description,
+    careers,
+  };
+}
+
 function matchCsAreas(form: EligibilityFormData): AreaMatch[] {
   const mathE = gradePoints(form.mathElective);
   const ict = gradePoints(form.electiveIct);
@@ -210,64 +235,69 @@ function matchCsAreas(form: EligibilityFormData): AreaMatch[] {
     ((mathE * 2 + physics + mathCore + (chemistry > 0 ? chemistry * 0.5 : 0)) / (MAX * 4.5)) * 100;
 
   const areas: AreaMatch[] = [
-    {
-      key: "software-engineering",
-      name: "Software Engineering",
-      fitPercent: Math.round(softwareEngineering),
-      fitLabel: fitLabelFor(softwareEngineering),
-      description: "Your performance in Elective Mathematics and ICT supports this pathway.",
-      careers: ["Software Developer", "Web Developer", "Backend Developer", "Full-Stack Developer", "QA Analyst"],
-    },
-    {
-      key: "cybersecurity",
-      name: "Cybersecurity",
-      fitPercent: Math.round(cybersecurity),
-      fitLabel: fitLabelFor(cybersecurity),
-      description: "Strong ICT and Mathematics grades support work in systems and security.",
-      careers: ["Security Analyst", "Network Administrator", "Penetration Tester", "SOC Analyst", "IT Auditor"],
-    },
-    {
-      key: "ai-ml",
-      name: "Artificial Intelligence & ML",
-      fitPercent: Math.round(aiAndMl),
-      fitLabel: fitLabelFor(aiAndMl),
-      description: "Mathematics and science grades support this data- and math-heavy pathway.",
-      careers: ["Machine Learning Engineer", "Data Scientist", "Data Analyst", "AI Research Assistant", "Data Engineer"],
-    },
+    toArea(
+      "software-engineering",
+      "Software Engineering",
+      softwareEngineering,
+      "Your performance in Elective Mathematics and ICT supports this pathway.",
+      ["Software Developer", "Web Developer", "Backend Developer", "Full-Stack Developer", "QA Analyst"],
+    ),
+    toArea(
+      "cybersecurity",
+      "Cybersecurity",
+      cybersecurity,
+      "Strong ICT and Mathematics grades support work in systems and security.",
+      ["Security Analyst", "Network Administrator", "Penetration Tester", "SOC Analyst", "IT Auditor"],
+    ),
+    toArea(
+      "ai-ml",
+      "Artificial Intelligence & ML",
+      aiAndMl,
+      "Mathematics and science grades support this data- and math-heavy pathway.",
+      ["Machine Learning Engineer", "Data Scientist", "Data Analyst", "AI Research Assistant", "Data Engineer"],
+    ),
   ];
 
   return areas.sort((a, b) => b.fitPercent - a.fitPercent);
 }
 
-// ---------------------------------------------------------------------------
-// UI Helper Components
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// SHARED UI PRIMITIVES
+// ===========================================================================
 
 type Tab = "checker" | "requirements" | "faqs";
-type Step = "form" | "result" | "areas" | "career";
+type Step =
+  | { kind: "form" }
+  | { kind: "result" }
+  | { kind: "areas" }
+  | { kind: "career"; area: AreaMatch };
 
-const inputLabel = "mb-1 block text-[14px] font-semibold text-[#080b50]";
-const selectClass =
-  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[15px] text-[#080b50] outline-none transition-colors focus:border-[#203b82]";
-const textInputClass =
-  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[15px] text-[#080b50] outline-none transition-colors focus:border-[#203b82] placeholder:text-gray-400";
+const labelClass =
+  "mb-1 block text-[12.5px] font-semibold text-[#080b50] sm:text-[13.5px]";
 
-/**
- * Shared Header for consistent title & subtitle across steps
- */
-function MainHeader() {
-  return (
-    <div className="mb-10 text-center">
-      <h1 className="text-[34px] font-extrabold tracking-[-1px] sm:text-[42px] text-[#18337A]">
-        <span className="block">Computer Science</span>
-        <span className="block">Admission Assistant</span>
-      </h1>
-      <p className="mt-4 text-[18px] sm:text-[20px] text-[#18337A] leading-relaxed">
-        Enter your WASSCE results to find out whether you meet the minimum <br className="hidden sm:inline" />
-        requirements for Computer Science.
-      </p>
-    </div>
-  );
+const focusRing =
+  "focus:border-[#203b82] focus:ring-2 focus:ring-[#203b82]/20 outline-none";
+
+// ===========================================================================
+// GradeSelect — RESIZED dropdown
+// ===========================================================================
+//
+// Sizing changes vs. previous version:
+//   • Mobile: min-h-[42px] (was 44) — still accessible, feels tighter.
+//   • Desktop: min-h-[38px] (sm:min-h-0 removed) — compact like a real form.
+//   • Padding: py-2 (was py-2.5) and pl-2.5 (was pl-3) — narrower footprint.
+//   • Font: 15px on mobile (was 16), 14px on desktop (was 15) — smaller.
+//   • Chevron: h-3.5 w-3.5 (was h-4 w-4), right-2.5 (was right-3) — snugger.
+//   • Max width: max-w-[280px] on sm+ so wide rows don't stretch the field.
+
+interface GradeSelectProps {
+  value: Grade;
+  onChange: (g: Grade) => void;
+  label: string;
+  placeholder?: string;
+  helperText?: string;
+  required?: boolean;
+  anchorId?: string;
 }
 
 function GradeSelect({
@@ -275,55 +305,170 @@ function GradeSelect({
   onChange,
   label,
   placeholder = "Select a grade",
-}: {
-  value: Grade;
-  onChange: (g: Grade) => void;
-  label: string;
-  placeholder?: string;
-}) {
+  helperText,
+  required = false,
+  anchorId,
+}: GradeSelectProps) {
+  const autoId = useId();
+  const id = anchorId ?? autoId;
+  const helperId = helperText ? `${id}-helper` : undefined;
+
   return (
-    <div>
-      <label className={inputLabel}>{label}</label>
-      <select className={selectClass} value={value} onChange={(e) => onChange(e.target.value as Grade)}>
-        <option value="">{placeholder}</option>
-        {GRADE_OPTIONS.map((g) => (
-          <option key={g} value={g}>
-            {g}
-          </option>
-        ))}
-      </select>
+    <div className="w-full min-w-0 sm:max-w-[280px]">
+      <label htmlFor={id} className={labelClass}>
+        {label}
+        {required && (
+          <span className="ml-0.5 text-red-500" aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value as Grade)}
+          aria-required={required}
+          aria-describedby={helperId}
+          className={[
+            // Base shape
+            "w-full appearance-none rounded-md border border-gray-300 bg-white",
+            // RESIZED: compact padding + narrower chevron space
+            "py-2 pl-2.5 pr-8 text-[15px] sm:py-1.5 sm:text-[14px]",
+            "text-[#080b50] transition-colors",
+            // RESIZED: shorter min-height, still meets tap target on mobile
+            "min-h-[42px] sm:min-h-[38px]",
+            focusRing,
+          ].join(" ")}
+        >
+          <option value="">{placeholder}</option>
+          {GRADE_OPTIONS.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </select>
+
+        <ChevronDown
+          aria-hidden="true"
+          // RESIZED: smaller chevron, tighter right offset
+          className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500"
+        />
+      </div>
+
+      {helperText && (
+        <p id={helperId} className="mt-1 text-[11.5px] text-gray-500">
+          {helperText}
+        </p>
+      )}
     </div>
   );
 }
 
-/**
- * Requirement 2: Even spacing across tabs
- */
-function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "checker", label: "Eligibility Checker" },
-    { key: "requirements", label: "Requirements" },
-    { key: "faqs", label: "FAQs" },
-  ];
+// ===========================================================================
+// TextInput — matched size to the new GradeSelect
+// ===========================================================================
+
+interface TextInputProps {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+  placeholder?: string;
+}
+
+function TextInput({ value, onChange, label, placeholder }: TextInputProps) {
+  const id = useId();
+
   return (
-    <div className="flex w-full items-center justify-between border-b border-gray-200 mb-8">
-      {tabs.map((t) => (
-        <button
-          key={t.key}
-          type="button"
-          onClick={() => setTab(t.key)}
-          className={`flex-1 text-center pb-3 text-[15px] sm:text-[16px] font-semibold transition-colors border-b-2 px-2 ${
-            tab === t.key
-              ? "border-[#080b50] text-[#080b50]"
-              : "border-transparent text-gray-400 hover:text-[#203b82]"
-          }`}
-        >
-          {t.label}
-        </button>
-      ))}
+    <div className="w-full min-w-0 sm:max-w-[280px]">
+      <label htmlFor={id} className={labelClass}>
+        {label}
+      </label>
+      <input
+        id={id}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={[
+          "w-full rounded-md border border-gray-300 bg-white",
+          // RESIZED: matches GradeSelect
+          "px-2.5 py-2 text-[15px] sm:py-1.5 sm:text-[14px]",
+          "text-[#080b50] transition-colors placeholder:text-gray-400",
+          "min-h-[42px] sm:min-h-[38px]",
+          focusRing,
+        ].join(" ")}
+      />
     </div>
   );
 }
+
+// ===========================================================================
+// MainHeader
+// ===========================================================================
+
+function MainHeader() {
+  return (
+    <div className="mb-6 text-center sm:mb-10">
+      <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.5px] text-[#18337A] xs:text-[28px] sm:text-[36px] md:text-[42px]">
+        <span className="block">Computer Science</span>
+        <span className="block">Admission Assistant</span>
+      </h1>
+      <p className="mx-auto mt-3 max-w-[560px] text-[14px] leading-relaxed text-[#18337A] sm:mt-4 sm:text-[18px] md:text-[20px]">
+        Enter your WASSCE results to find out whether you meet the minimum requirements for Computer Science.
+      </p>
+    </div>
+  );
+}
+
+// ===========================================================================
+// TabBar
+// ===========================================================================
+
+function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  const tabs: { key: Tab; label: string; short: string }[] = [
+    { key: "checker", label: "Eligibility Checker", short: "Checker" },
+    { key: "requirements", label: "Requirements", short: "Requirements" },
+    { key: "faqs", label: "FAQs", short: "FAQs" },
+  ];
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Eligibility sections"
+      className="mb-6 flex w-full items-stretch gap-1 overflow-x-auto border-b border-gray-200 sm:mb-8"
+    >
+      {tabs.map((t) => {
+        const selected = tab === t.key;
+        return (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={() => setTab(t.key)}
+            className={[
+              "flex-1 min-w-0 whitespace-nowrap border-b-2 px-2 pb-3 pt-1 text-center",
+              "text-[11px] font-semibold transition-colors xs:text-[12px] sm:text-[15px] md:text-[16px]",
+              "min-h-[44px]",
+              selected
+                ? "border-[#080b50] text-[#080b50]"
+                : "border-transparent text-gray-400 hover:text-[#203b82]",
+            ].join(" ")}
+          >
+            <span className="xs:hidden">{t.short}</span>
+            <span className="hidden xs:inline">{t.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ===========================================================================
+// IncompleteModal — Portal, scroll-locked, always centered in viewport
+// ===========================================================================
 
 function IncompleteModal({
   totalElectivesEntered,
@@ -335,71 +480,124 @@ function IncompleteModal({
   onClose: () => void;
 }) {
   const [progress, setProgress] = useState(0);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProgress(100);
-    }, 50);
-
+    const timer = setTimeout(() => setProgress(100), 50);
     return () => clearTimeout(timer);
   }, []);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-5 sm:p-8 pt-8 sm:pt-10 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
+  // Lock body scroll while modal is open.
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, []);
+
+  useEffect(() => {
+    const focusTimer = setTimeout(() => closeButtonRef.current?.focus(), 0);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      clearTimeout(focusTimer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex h-[100vh] h-[100dvh] w-screen items-center justify-center bg-black/40 p-3 backdrop-blur-sm sm:p-4"
+      role="presentation"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-[500px] overflow-y-auto overflow-x-hidden rounded-2xl bg-white p-4 pt-6 text-center shadow-xl sm:max-h-[calc(100dvh-2rem)] sm:p-8 sm:pt-10"
+      >
         <div
-          className="absolute top-0 left-0 h-2 bg-purple-600 transition-all duration-500 ease-out"
+          aria-hidden="true"
+          className="absolute left-0 top-0 h-1.5 bg-purple-600 transition-all duration-500 ease-out sm:h-2"
           style={{ width: `${progress}%` }}
         />
 
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-purple-50 text-purple-600">
-          <AlertCircle size={44} strokeWidth={1.75} />
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-purple-50 text-purple-600 sm:mb-6 sm:h-20 sm:w-20">
+          <AlertCircle size={36} strokeWidth={1.75} aria-hidden="true" className="sm:hidden" />
+          <AlertCircle size={44} strokeWidth={1.75} aria-hidden="true" className="hidden sm:block" />
         </div>
 
-        <h2 className="text-[25px] font-bold text-[#080b50]">More information required</h2>
+        <h2 id={titleId} className="text-[18px] font-bold text-[#080b50] sm:text-[25px]">
+          More information required
+        </h2>
 
-        <p className="mx-auto mt-3 max-w-[360px] text-[18px] leading-relaxed text-gray-600">
+        <p className="mx-auto mt-3 max-w-[360px] text-[14px] leading-relaxed text-gray-600 sm:text-[17px]">
           {!hasElectiveMath ? (
             <>
-              Please select a grade for <strong>Elective Mathematics</strong> and enter at least 3 electives in total
-              to continue.
+              Please select a grade for <strong>Elective Mathematics</strong> and enter at least 3 electives in total to continue.
             </>
           ) : (
             <>
-              You have entered only {totalElectivesEntered} elective{totalElectivesEntered === 1 ? "" : "s"}. Please
-              provide at least 3 electives, including Elective Mathematics, to continue.
+              You have entered only {totalElectivesEntered} elective
+              {totalElectivesEntered === 1 ? "" : "s"}. Please provide at least 3 electives, including Elective Mathematics, to continue.
             </>
           )}
         </p>
 
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
-          className="mt-8 rounded-lg border border-[#080b50] px-8 py-2.5 text-[15px] font-semibold text-[#080b50] transition-colors hover:bg-gray-50 active:bg-gray-100"
+          className="mt-6 min-h-[44px] rounded-lg border border-[#080b50] px-6 py-2.5 text-[14px] font-semibold text-[#080b50] transition-colors hover:bg-gray-50 active:bg-gray-100 sm:mt-8 sm:px-8 sm:text-[15px]"
         >
           Back to Form
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
+// ===========================================================================
+// Static panels
+// ===========================================================================
+
 function RequirementsPanel() {
   return (
-    <div className="py-4 sm:py-6 text-[#080b50]">
-      <h3 className="mb-6 text-[22px] font-bold">Minimum WASSCE Requirements</h3>
-      <ul className="space-y-6 text-[16px] leading-relaxed text-gray-700">
-        <li className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-          <span className="font-bold text-[#080b50] block mb-1">Core Subjects (Required)</span>
+    <div className="py-3 text-[#080b50] sm:py-6">
+      <h3 className="mb-4 text-[17px] font-bold sm:mb-6 sm:text-[22px]">
+        Minimum WASSCE Requirements
+      </h3>
+      <ul className="space-y-3 text-[14px] leading-relaxed text-gray-700 sm:space-y-6 sm:text-[16px]">
+        <li className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
+          <span className="mb-1 block font-bold text-[#080b50]">Core Subjects (Required)</span>
           English Language, Core Mathematics, and Integrated Science.
         </li>
-        <li className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-          <span className="font-bold text-[#080b50] block mb-1">Elective Subjects</span>
+        <li className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
+          <span className="mb-1 block font-bold text-[#080b50]">Elective Subjects</span>
           Elective Mathematics is required. You also need at least two further electives (Physics, Chemistry, Biology,
           Elective ICT, or another elective you name).
         </li>
-        <li className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-          <span className="font-bold text-[#080b50] block mb-1">Minimum Grade Threshold</span>
+        <li className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
+          <span className="mb-1 block font-bold text-[#080b50]">Minimum Grade Threshold</span>
           A1–C6 counts as a qualifying grade for every subject above.
         </li>
       </ul>
@@ -407,33 +605,36 @@ function RequirementsPanel() {
   );
 }
 
+const FAQS = [
+  {
+    q: "What if I haven't received my WASSCE results yet?",
+    a: "You can still use the checker with your mock or predicted grades to get a sense of where you stand, but your final application will be assessed on your official results.",
+  },
+  {
+    q: "Does the checker store or submit my grades anywhere?",
+    a: "No — everything runs in your browser. Nothing is saved or sent anywhere unless you choose to apply.",
+  },
+  {
+    q: "I'm close but not eligible. What can I do?",
+    a: "Reach out to the admissions office — resit options and alternative entry routes are handled case by case.",
+  },
+  {
+    q: "How is the 'Potential CS Areas' match calculated?",
+    a: "It's a rough guide based on your Mathematics, ICT, and science grades, weighted toward the subjects most relevant to each area. It's meant to help you explore, not to limit your choices.",
+  },
+];
+
 function FaqsPanel() {
-  const faqs = [
-    {
-      q: "What if I haven't received my WASSCE results yet?",
-      a: "You can still use the checker with your mock or predicted grades to get a sense of where you stand, but your final application will be assessed on your official results.",
-    },
-    {
-      q: "Does the checker store or submit my grades anywhere?",
-      a: "No — everything runs in your browser. Nothing is saved or sent anywhere unless you choose to apply.",
-    },
-    {
-      q: "I'm close but not eligible. What can I do?",
-      a: "Reach out to the admissions office — resit options and alternative entry routes are handled case by case.",
-    },
-    {
-      q: "How is the 'Potential CS Areas' match calculated?",
-      a: "It's a rough guide based on your Mathematics, ICT, and science grades, weighted toward the subjects most relevant to each area. It's meant to help you explore, not to limit your choices.",
-    },
-  ];
   return (
-    <div className="py-4 sm:py-6">
-      <h3 className="mb-6 text-[22px] font-bold text-[#080b50]">Frequently Asked Questions</h3>
-      <div className="space-y-6">
-        {faqs.map((f) => (
-          <div key={f.q} className="rounded-lg bg-gray-50 p-5 border border-gray-100">
-            <p className="text-[17px] font-semibold text-[#080b50]">{f.q}</p>
-            <p className="mt-2 text-[15px] leading-relaxed text-gray-600">{f.a}</p>
+    <div className="py-3 sm:py-6">
+      <h3 className="mb-4 text-[17px] font-bold text-[#080b50] sm:mb-6 sm:text-[22px]">
+        Frequently Asked Questions
+      </h3>
+      <div className="space-y-3 sm:space-y-6">
+        {FAQS.map((f) => (
+          <div key={f.q} className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-5">
+            <p className="text-[14px] font-semibold text-[#080b50] sm:text-[17px]">{f.q}</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-gray-600 sm:text-[15px]">{f.a}</p>
           </div>
         ))}
       </div>
@@ -441,122 +642,138 @@ function FaqsPanel() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main Component
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// Main component
+// ===========================================================================
 
 export default function CheckEligibility() {
   const [tab, setTab] = useState<Tab>("checker");
-  const [step, setStep] = useState<Step>("form");
+  const [step, setStep] = useState<Step>({ kind: "form" });
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
-  const [form, setForm] = useState<EligibilityFormData>(EMPTY_FORM);
-  const [selectedArea, setSelectedArea] = useState<AreaMatch | null>(null);
+  const [form, setForm] = useState<EligibilityFormData>(() => ({ ...EMPTY_FORM }));
 
-  const update = <K extends keyof EligibilityFormData>(key: K, value: EligibilityFormData[K]) =>
-    setForm((f) => ({ ...f, [key]: value }));
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [step.kind]);
+
+  const update = <K extends keyof EligibilityFormData>(
+    key: K,
+    value: EligibilityFormData[K],
+  ) => setForm((f) => ({ ...f, [key]: value }));
 
   const result = useMemo(() => checkEligibility(form), [form]);
   const areas = useMemo(() => matchCsAreas(form), [form]);
-
   const evaluatedSixSubjects = useMemo(
     () => result.subjects.filter((s) => s.isEvaluatedInTop6),
-    [result]
+    [result],
   );
 
-  const coresFilled = form.english && form.mathCore && form.integratedScience;
+  const coresFilled = Boolean(form.english && form.mathCore && form.integratedScience);
 
   function handleCheck() {
-    if (result.isIncomplete) {
-      setShowIncompleteModal(true);
-    } else {
-      setStep("result");
+    if (result.isIncomplete) setShowIncompleteModal(true);
+    else setStep({ kind: "result" });
+  }
+
+  function handleCloseModal() {
+    setShowIncompleteModal(false);
+    if (!result.hasElectiveMath) {
+      requestAnimationFrame(() => {
+        document
+          .getElementById("field-math-elective")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
     }
   }
 
-  function handleBackToForm() {
-    setStep("form");
-  }
-
-  function handleExploreAreas() {
-    setStep("areas");
-  }
-
-  function handleOpenArea(area: AreaMatch) {
-    setSelectedArea(area);
-    setStep("career");
-  }
-
   return (
-    <section className="w-full bg-white py-12 text-[#080b50]">
+    <section className="w-full overflow-x-hidden bg-white py-6 text-[#080b50] sm:py-12">
       {showIncompleteModal && (
         <IncompleteModal
           totalElectivesEntered={result.totalElectivesEntered}
           hasElectiveMath={result.hasElectiveMath}
-          onClose={() => setShowIncompleteModal(false)}
+          onClose={handleCloseModal}
         />
       )}
 
-      <div className="mx-auto max-w-[900px] px-6">
-        {/* Requirement 1 & 4: Persistent Title Header across all screens */}
+      <div className="mx-auto w-full max-w-[900px] px-3 sm:px-6">
         <MainHeader />
 
-        <div className="rounded-lg bg-white p-2 sm:p-6">
+        <div className="rounded-lg bg-white p-0 sm:p-6">
           <TabBar tab={tab} setTab={setTab} />
 
           {tab === "requirements" && <RequirementsPanel />}
           {tab === "faqs" && <FaqsPanel />}
 
-          {tab === "checker" && step === "form" && (
-            <div className="py-4 sm:py-6">
-              <div className="mb-8 flex gap-4 rounded-md border border-[#203b82]/30 bg-[#77D4FF]/30 p-5 text-[12px] text-[#060740] leading-relaxed">
-                <div className="flex flex-col items-center pt-0.5 shrink-0">
-                  <AlertTriangle className="h-5 w-5 text-[#060740]" />
+          {/* --------------------------- STEP: FORM --------------------------- */}
+          {tab === "checker" && step.kind === "form" && (
+            <div className="py-3 sm:py-6">
+              <div className="mb-6 flex gap-3 rounded-md border border-[#203b82]/30 bg-[#77D4FF]/30 p-3 text-[12px] leading-relaxed text-[#060740] sm:mb-8 sm:gap-4 sm:p-5 sm:text-[13px]">
+                <div className="flex shrink-0 flex-col items-center pt-0.5">
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-[#060740]" aria-hidden="true" />
                   <div className="mt-2 w-[1.5px] flex-1 bg-[#18337A]" />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="min-w-0 space-y-1.5">
                   <div>
-                    <p className="mb-1 font-bold text-base">Before You Start</p>
+                    <p className="mb-1 text-[14px] font-bold sm:text-base">Before You Start</p>
                     <p>Enter your WASSCE grades exactly as they appear on your results.</p>
                   </div>
-
                   <div>
                     <p className="font-bold">Core Subjects</p>
-                    <p className="text-gray-700">• English Language, Core Mathematics and Integrated Science are required.</p>
+                    <p className="text-gray-700">
+                      • English Language, Core Mathematics and Integrated Science are required.
+                    </p>
                   </div>
-
                   <div>
                     <p className="font-bold">Electives</p>
-                    <p className="text-gray-700">• Elective Mathematics is required. Select at least two additional electives.</p>
+                    <p className="text-gray-700">
+                      • Elective Mathematics is required. Select at least two additional electives.
+                    </p>
                   </div>
-
                   <div>
                     <p className="font-bold">Minimum Grade</p>
-                    <p className="text-gray-700">• A1–C6 is considered a qualifying grade for this checker.</p>
+                    <p className="text-gray-700">
+                      • A1–C6 is considered a qualifying grade for this checker.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <h3 className="mb-4 text-[17px] font-bold">1 — Core Subjects (Required)</h3>
-              <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <GradeSelect label="English Language" value={form.english} onChange={(g) => update("english", g)} />
-                <GradeSelect label="Mathematics (Core)" value={form.mathCore} onChange={(g) => update("mathCore", g)} />
-                <div>
-                  <GradeSelect
-                    label="Integrated Science"
-                    value={form.integratedScience}
-                    onChange={(g) => update("integratedScience", g)}
-                  />
-                  <p className="mt-1 text-[12px] text-gray-500">Minimum required grade is C6.</p>
-                </div>
+              <h3 className="mb-3 text-[15px] font-bold sm:mb-4 sm:text-[17px]">
+                1 — Core Subjects (Required)
+              </h3>
+              <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2 sm:gap-4">
+                {/* No `required` — no red asterisk on core subjects */}
+                <GradeSelect
+                  label="English Language"
+                  value={form.english}
+                  onChange={(g) => update("english", g)}
+                />
+                <GradeSelect
+                  label="Mathematics (Core)"
+                  value={form.mathCore}
+                  onChange={(g) => update("mathCore", g)}
+                />
+                <GradeSelect
+                  label="Integrated Science"
+                  value={form.integratedScience}
+                  onChange={(g) => update("integratedScience", g)}
+                  helperText="Minimum required grade is C6."
+                />
               </div>
 
-              <h3 className="mb-4 text-[17px] font-bold">2 — Elective Subjects</h3>
-              <div className="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <h3 className="mb-3 text-[15px] font-bold sm:mb-4 sm:text-[17px]">
+                2 — Elective Subjects
+              </h3>
+              <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                {/* KEEP `required` — only red asterisk on the form */}
                 <GradeSelect
-                  label="Mathematics (Elective) *"
+                  anchorId="field-math-elective"
+                  label="Mathematics (Elective)"
                   value={form.mathElective}
                   onChange={(g) => update("mathElective", g)}
+                  required
                 />
                 <GradeSelect label="Physics" value={form.physics} onChange={(g) => update("physics", g)} />
                 <GradeSelect label="Chemistry" value={form.chemistry} onChange={(g) => update("chemistry", g)} />
@@ -564,49 +781,33 @@ export default function CheckEligibility() {
                 <GradeSelect label="Elective ICT" value={form.electiveIct} onChange={(g) => update("electiveIct", g)} />
               </div>
 
-              <h3 className="mb-4 text-[17px] font-bold">Optional Subjects</h3>
-              <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div>
-                  <label className={inputLabel}>Other Elective 1 (Specify Subject Name)</label>
-                  <input
-                    className={`${textInputClass} mb-3`}
-                    placeholder="Other Elective 1 (Specify Subject Name)"
+              <h3 className="mb-3 text-[15px] font-bold sm:mb-4 sm:text-[17px]">Optional Subjects</h3>
+              <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2 sm:gap-4">
+                <div className="space-y-3">
+                  <TextInput
+                    label="Other Elective 1 — Subject Name"
+                    placeholder="e.g. Further Mathematics"
                     value={form.customElective1Name}
-                    onChange={(e) => update("customElective1Name", e.target.value)}
+                    onChange={(v) => update("customElective1Name", v)}
                   />
-                  <select
-                    className={selectClass}
+                  <GradeSelect
+                    label="Other Elective 1 — Grade"
                     value={form.customElective1Grade}
-                    onChange={(e) => update("customElective1Grade", e.target.value as Grade)}
-                  >
-                    <option value="">Select a grade</option>
-                    {GRADE_OPTIONS.map((g) => (
-                      <option key={g} value={g}>
-                        {g}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className={inputLabel}>Other Elective 2 (Specify Subject Name)</label>
-                  <input
-                    className={`${textInputClass} mb-3`}
-                    placeholder="Other Elective 2 (Specify Subject Name)"
-                    value={form.customElective2Name}
-                    onChange={(e) => update("customElective2Name", e.target.value)}
+                    onChange={(g) => update("customElective1Grade", g)}
                   />
-                  <select
-                    className={selectClass}
+                </div>
+                <div className="space-y-3">
+                  <TextInput
+                    label="Other Elective 2 — Subject Name"
+                    placeholder="e.g. Geography"
+                    value={form.customElective2Name}
+                    onChange={(v) => update("customElective2Name", v)}
+                  />
+                  <GradeSelect
+                    label="Other Elective 2 — Grade"
                     value={form.customElective2Grade}
-                    onChange={(e) => update("customElective2Grade", e.target.value as Grade)}
-                  >
-                    <option value="">Select a grade</option>
-                    {GRADE_OPTIONS.map((g) => (
-                      <option key={g} value={g}>
-                        {g}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(g) => update("customElective2Grade", g)}
+                  />
                 </div>
               </div>
 
@@ -614,78 +815,81 @@ export default function CheckEligibility() {
                 type="button"
                 disabled={!coresFilled}
                 onClick={handleCheck}
-                className="w-full rounded-md bg-[#080b50] py-3 text-[16px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-[48px] w-full rounded-md bg-[#080b50] py-3 text-[15px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Check My Eligibility
               </button>
             </div>
           )}
 
-          {tab === "checker" && step === "result" && (
+          {/* -------------------------- STEP: RESULT -------------------------- */}
+          {tab === "checker" && step.kind === "result" && (
             <div className="py-2">
               <button
                 type="button"
-                onClick={handleBackToForm}
-                className="mb-6 flex items-center gap-1.5 text-[15px] font-medium text-[#080b50] hover:opacity-80"
+                onClick={() => setStep({ kind: "form" })}
+                className="mb-5 flex min-h-[44px] items-center gap-1.5 text-[14px] font-medium text-[#080b50] hover:opacity-80 sm:mb-6 sm:text-[15px]"
               >
-                <ArrowLeft size={18} /> Back
+                <ArrowLeft size={18} aria-hidden="true" /> Back
               </button>
 
               <div className="text-center">
                 <div className="inline-block border-b-2 border-[#080b50] pb-1">
-                  <h2 className="text-[20px] font-semibold tracking-wider text-[#080b50]">
+                  <h2 className="text-[14px] font-semibold tracking-wider text-[#080b50] sm:text-[20px]">
                     YOUR ELIGIBILITY RESULT
                   </h2>
                 </div>
 
-                <div className="mt-8 mb-6 flex flex-col items-center justify-center">
+                <div className="mb-6 mt-6 flex flex-col items-center justify-center sm:mt-8">
                   {result.eligible ? (
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#73D2F6] text-white">
-                        <Check size={25} strokeWidth={3} />
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#73D2F6] text-white sm:h-10 sm:w-10">
+                        <Check size={22} strokeWidth={3} aria-hidden="true" className="sm:hidden" />
+                        <Check size={25} strokeWidth={3} aria-hidden="true" className="hidden sm:block" />
                       </div>
-                      <span className="text-[32px] font-semibold text-[#080b50] tracking-wide">ELIGIBLE</span>
+                      <span className="text-[22px] font-semibold tracking-wide text-[#080b50] sm:text-[32px]">
+                        ELIGIBLE
+                      </span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3">
-                      <XCircle className="fill-red-500 text-white" size={50} />
-                      <span className="text-[32px] font-semibold text-[#080b50] tracking-wide">INELIGIBLE</span>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <XCircle className="fill-red-500 text-white" size={38} aria-hidden="true" />
+                      <span className="text-[22px] font-semibold tracking-wide text-[#080b50] sm:text-[32px]">
+                        INELIGIBLE
+                      </span>
                     </div>
                   )}
                 </div>
 
-                <p className="mt-2 text-[15px] font-medium text-[#080b50]">
-                  {result.eligible ? (
-                    <>
-                      You meet the minimum requirements for BSc
-                      <br />
-                      Computer Science.
-                    </>
-                  ) : (
-                    "You currently do not meet the minimum WASSCE requirements for the Computer Science programme."
-                  )}
+                <p className="mx-auto mt-2 max-w-[420px] px-2 text-[13px] font-medium text-[#080b50] sm:text-[15px]">
+                  {result.eligible
+                    ? "You meet the minimum requirements for BSc Computer Science."
+                    : "You currently do not meet the minimum WASSCE requirements for the Computer Science programme."}
                 </p>
 
-                <div className="my-8 border-b border-[#080b50]" />
+                <div className="my-6 border-b border-[#080b50] sm:my-8" />
 
-                <p className="mb-8 -mt-5 text-[15px] font-extrabold uppercase tracking-wider text-[#080b50]">
+                <p className="-mt-4 mb-6 text-[12px] font-extrabold uppercase tracking-wider text-[#080b50] sm:-mt-5 sm:mb-8 sm:text-[15px]">
                   REQUIREMENT CHECK
                 </p>
 
-                <ul className="mx-auto max-w-[460px] space-y-4 text-left">
+                <ul className="mx-auto max-w-[460px] space-y-3 text-left sm:space-y-4">
                   {evaluatedSixSubjects.map((s) => (
-                    <li key={s.label} className="flex items-center justify-between text-[15px] font-medium">
-                      <span className="flex items-center gap-3 text-[#080b50]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#080b50]" />
-                        {s.label}
+                    <li
+                      key={s.id}
+                      className="flex items-center justify-between gap-2 text-[13px] font-medium sm:gap-3 sm:text-[15px]"
+                    >
+                      <span className="flex min-w-0 items-center gap-2 text-[#080b50] sm:gap-3">
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#080b50]" />
+                        <span className="truncate">{s.label}</span>
                       </span>
-                      <div className="flex items-center gap-4 sm:gap-12">
-                        <span className="w-8 text-right text-[#080b50]">{s.grade || "—"}</span>
-                        <div className="w-15 flex justify-end">
+                      <div className="flex shrink-0 items-center gap-2 sm:gap-8 lg:gap-12">
+                        <span className="w-7 text-right text-[#080b50] sm:w-8">{s.grade || "—"}</span>
+                        <div className="flex w-7 justify-end sm:w-8">
                           {s.passed ? (
-                            <Check className="text-[#73D2F6]" size={25} strokeWidth={2.5} />
+                            <Check className="text-[#73D2F6]" size={22} strokeWidth={2.5} aria-hidden="true" />
                           ) : (
-                            <X size={25} className="text-red-500" />
+                            <X size={22} className="text-red-500" aria-hidden="true" />
                           )}
                         </div>
                       </div>
@@ -694,25 +898,25 @@ export default function CheckEligibility() {
                 </ul>
 
                 {!result.eligible && result.qualifyingElectiveCount < 2 && (
-                  <p className="mx-auto mt-6 max-w-[420px] text-center text-[13px] text-gray-500">
+                  <p className="mx-auto mt-5 max-w-[420px] px-2 text-center text-[12px] text-gray-500 sm:mt-6 sm:text-[13px]">
                     You need at least two qualifying electives beyond Mathematics — you currently have{" "}
                     {result.qualifyingElectiveCount}.
                   </p>
                 )}
 
-                <div className="mx-auto mt-12 flex max-w-[620px] flex-col gap-5 sm:flex-row">
+                <div className="mx-auto mt-8 flex max-w-[620px] flex-col gap-3 sm:mt-12 sm:flex-row sm:gap-5">
                   {result.eligible && (
                     <>
                       <button
                         type="button"
-                        onClick={handleExploreAreas}
-                        className="flex-1 rounded-lg border-2 border-[#080b50] py-3.5 text-[16px] font-bold text-[#080b50] transition-opacity hover:opacity-80"
+                        onClick={() => setStep({ kind: "areas" })}
+                        className="min-h-[48px] flex-1 rounded-lg border-2 border-[#080b50] py-3 text-[14px] font-bold text-[#080b50] transition-opacity hover:opacity-80 sm:py-3.5 sm:text-[16px]"
                       >
                         Explore Potential CS Areas
                       </button>
                       <a
                         href="#apply"
-                        className="flex-1 rounded-lg bg-[#080b50] py-3.5 text-center text-[16px] font-bold text-white transition-opacity hover:opacity-90"
+                        className="min-h-[48px] flex-1 rounded-lg bg-[#080b50] py-3 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90 sm:py-3.5 sm:text-[16px]"
                       >
                         Apply Now
                       </a>
@@ -723,72 +927,61 @@ export default function CheckEligibility() {
             </div>
           )}
 
-          {/* Requirement 3: Updated Potential CS Areas layout */}
-          {tab === "checker" && step === "areas" && (
-            <div className="py-6 sm:py-8">
+          {/* -------------------------- STEP: AREAS --------------------------- */}
+          {tab === "checker" && step.kind === "areas" && (
+            <div className="py-4 sm:py-8">
               <button
                 type="button"
-                onClick={() => setStep("result")}
-                className="mb-8 flex items-center gap-1 text-[14px] font-semibold text-[#18337A] hover:opacity-80"
+                onClick={() => setStep({ kind: "result" })}
+                className="mb-5 flex min-h-[44px] items-center gap-1 text-[13px] font-semibold text-[#18337A] hover:opacity-80 sm:mb-8 sm:text-[14px]"
               >
-                <ArrowLeft size={16} /> Back
+                <ArrowLeft size={16} aria-hidden="true" /> Back
               </button>
 
-              <div className="text-center mb-10">
-                <span className="inline-block border-b-2 border-[#080b50] pb-1 text-[16px] sm:text-[18px] font-extrabold uppercase tracking-wider text-[#080b50]">
+              <div className="mb-6 text-center sm:mb-10">
+                <span className="inline-block border-b-2 border-[#080b50] pb-1 text-[13px] font-extrabold uppercase tracking-wider text-[#080b50] sm:text-[18px]">
                   POTENTIAL CS AREAS MATCH RATING
                 </span>
-                <p className="mx-auto mt-6 max-w-[520px] text-[15px] sm:text-[16px] text-gray-600 leading-relaxed">
+                <p className="mx-auto mt-4 max-w-[520px] px-2 text-[13px] leading-relaxed text-gray-600 sm:mt-6 sm:text-[16px]">
                   Based on your subjects and grades, these areas may be worth exploring.
                 </p>
               </div>
 
-              {/* Seamless Inline Progress Bars */}
-              <div className="mx-auto max-w-[680px] space-y-5">
+              <div className="mx-auto max-w-[680px] space-y-5 sm:space-y-6">
                 {areas.map((area) => (
-                  <button
-                    key={area.key}
-                    type="button"
-                    onClick={() => handleOpenArea(area)}
-                    className="group relative block w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 p-5 transition-all hover:border-[#080b50] hover:bg-white hover:shadow-lg text-left"
-                  >
-                    <div className="flex items-center justify-between gap-4 z-10 relative">
-                      <div className="flex items-center gap-3 w-1/3 shrink-0">
-                        <span className="font-bold text-[#080b50] text-[16px] sm:text-[17px]">
-                          {area.name}
-                        </span>
-                        <ChevronRight size={18} className="text-gray-400 group-hover:text-[#080b50] transition-colors" />
-                      </div>
+                  <div key={area.key} className="block w-full text-left">
+                    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+                      <span className="shrink-0 text-[13px] font-bold text-[#080b50] sm:w-1/3 sm:text-[16px]">
+                        {area.name}
+                      </span>
 
-                      {/* Integrated Seamless Progress Bar */}
-                      <div className="flex-1 flex items-center gap-3">
-                        <div className="h-4 w-full overflow-hidden rounded-full bg-gray-200/80">
+                      <div className="flex flex-1 items-center gap-2 sm:gap-3">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200/80">
                           <div
-                            className="h-full rounded-full bg-[#080b50] transition-all duration-500 group-hover:bg-[#0798d1]"
+                            className="h-full rounded-full bg-[#080b50]"
                             style={{ width: `${Math.max(8, area.fitPercent)}%` }}
                           />
                         </div>
-                        <span className="text-[14px] font-bold text-[#080b50] min-w-[80px] text-right">
+                        <span className="min-w-[60px] text-right text-[12px] font-bold text-[#080b50] sm:min-w-[70px] sm:text-[14px]">
                           {area.fitLabel}
                         </span>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
 
-              {/* Requirement 3: Enhanced Padding and Margins for CTAs */}
-              <div className="mx-auto mt-16 mb-10 flex max-w-[580px] flex-col sm:flex-row gap-5 px-4 py-2">
+              <div className="mx-auto mb-4 mt-10 flex max-w-[580px] flex-col gap-3 sm:mb-6 sm:mt-14 sm:flex-row sm:gap-5 sm:px-4">
                 <button
                   type="button"
-                  onClick={() => handleOpenArea(areas[0])}
-                  className="flex-1 rounded-xl border-2 border-[#080b50] py-4 px-6 text-[15px] font-bold text-[#080b50] transition-all hover:bg-[#080b50] hover:text-white"
+                  onClick={() => setStep({ kind: "career", area: areas[0] })}
+                  className="min-h-[48px] flex-1 rounded-xl border-2 border-[#080b50] px-4 py-3 text-[14px] font-bold text-[#080b50] transition-all hover:bg-[#080b50] hover:text-white sm:px-6 sm:py-4 sm:text-[15px]"
                 >
                   Explore Career Opportunities
                 </button>
                 <a
                   href="#apply"
-                  className="flex-1 rounded-xl bg-[#080b50] py-4 px-6 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90 shadow-md"
+                  className="min-h-[48px] flex-1 rounded-xl bg-[#080b50] px-4 py-3 text-center text-[14px] font-bold text-white shadow-md transition-opacity hover:opacity-90 sm:px-6 sm:py-4 sm:text-[15px]"
                 >
                   Apply Now
                 </a>
@@ -796,56 +989,53 @@ export default function CheckEligibility() {
             </div>
           )}
 
-          {/* Requirement 4: Explore Career Opportunities Layout */}
-          {tab === "checker" && step === "career" && selectedArea && (
-            <div className="py-6 sm:py-8">
+          {/* -------------------------- STEP: CAREER -------------------------- */}
+          {tab === "checker" && step.kind === "career" && (
+            <div className="py-4 sm:py-8">
               <button
                 type="button"
-                onClick={() => setStep("areas")}
-                className="mb-8 flex items-center gap-1 text-[14px] font-semibold text-[#18337A] hover:opacity-80"
+                onClick={() => setStep({ kind: "areas" })}
+                className="mb-5 flex min-h-[44px] items-center gap-1 text-[13px] font-semibold text-[#18337A] hover:opacity-80 sm:mb-8 sm:text-[14px]"
               >
-                <ArrowLeft size={16} /> Back
+                <ArrowLeft size={16} aria-hidden="true" /> Back
               </button>
 
-              <div className="text-center mb-6">
-                {/* Underlined Selected Career Title */}
-                <h3 className="inline-block border-b-2 border-[#080b50] pb-2 text-[24px] sm:text-[28px] font-extrabold uppercase tracking-wide text-[#080b50]">
-                  {selectedArea.name}
+              <div className="mb-6 text-center">
+                <h3 className="inline-block border-b-2 border-[#080b50] pb-2 text-[18px] font-extrabold uppercase tracking-wide text-[#080b50] sm:text-[28px]">
+                  {step.area.name}
                 </h3>
-                <p className="mx-auto mt-5 max-w-[520px] text-[15px] sm:text-[16px] text-gray-600 leading-relaxed">
-                  {selectedArea.description}
+                <p className="mx-auto mt-4 max-w-[520px] px-2 text-[13px] leading-relaxed text-gray-600 sm:mt-5 sm:text-[16px]">
+                  {step.area.description}
                 </p>
               </div>
 
-              {/* Visually Prominent Divider Line */}
-              <div className="my-10 border-t-2 border-[#080b50]" />
+              <div className="my-8 border-t-2 border-[#080b50] sm:my-10" />
 
-              <p className="mb-8 text-center text-[15px] font-extrabold uppercase tracking-wider text-[#080b50]">
+              <p className="mb-6 text-center text-[12px] font-extrabold uppercase tracking-wider text-[#080b50] sm:mb-8 sm:text-[15px]">
                 CAREER OPPORTUNITIES
               </p>
 
-              {/* Distinct "||" Inline Separator View for Opportunities */}
-              <div className="mx-auto max-w-[700px] rounded-xl bg-gray-50 border border-gray-200 p-6 sm:p-8 text-center shadow-sm">
-                <div className="flex flex-wrap items-center justify-center gap-y-4 gap-x-3 text-[16px] sm:text-[18px] font-bold text-[#080b50]">
-                  {selectedArea.careers.map((career, index) => (
-                    <div key={career} className="flex items-center gap-3">
-                      <span className="hover:text-[#0798d1] transition-colors">{career}</span>
-                      {index < selectedArea.careers.length - 1 && (
-                        <span className="text-[#0798d1] font-black text-[18px] select-none">||</span>
+              <div className="mx-auto max-w-[700px] text-center">
+                <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-[13px] font-semibold text-[#080b50] sm:gap-x-3 sm:gap-y-3 sm:text-[16px]">
+                  {step.area.careers.map((career, index) => (
+                    <div key={career} className="flex items-center gap-2 sm:gap-3">
+                      <span className="transition-colors hover:text-[#0798d1]">{career}</span>
+                      {index < step.area.careers.length - 1 && (
+                        <span className="select-none font-bold text-[#0798d1]" aria-hidden="true">
+                          |
+                        </span>
                       )}
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="mx-auto mt-14 flex max-w-[420px] flex-col gap-4">
-                <a
-                  href="#apply"
-                  className="rounded-xl bg-[#080b50] py-4 text-center text-[16px] font-bold text-white transition-opacity hover:opacity-90 shadow-md"
-                >
-                  Apply Now
-                </a>
-              </div>
+              <a
+                href="#apply"
+                className="mt-10 block min-h-[48px] w-full rounded-xl bg-[#080b50] py-3.5 text-center text-[14px] font-bold text-white shadow-md transition-opacity hover:opacity-90 sm:mt-14 sm:py-4 sm:text-[16px]"
+              >
+                Apply Now
+              </a>
             </div>
           )}
         </div>
