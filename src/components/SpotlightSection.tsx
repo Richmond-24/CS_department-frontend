@@ -12,7 +12,7 @@ const spotlights = [
   {
     name: "Pierre Labroche",
     programme: "BS|MS ’26 Computer Science",
-    image: "/images/spotlight/pierre-labroche.jpg",
+    image: "/u.webp",
     quote:
       "I am focusing on the research topic of large-scale AI neural networks mapping onto structures of the human brain. For me, decoding the brain’s neural activity serves as a stepping stone for truly understanding the inner workings of the human brain.",
     focus: "Artificial Intelligence & Neuroscience",
@@ -20,7 +20,7 @@ const spotlights = [
   {
     name: "Ama Mensah",
     programme: "BSc ’25 Computer Science",
-    image: "/images/spotlight/ama-mensah.jpg",
+    image: "/img2.jpeg",
     quote:
       "Computer science has given me the confidence to approach difficult problems differently. I want to use technology to build practical solutions that improve everyday life.",
     focus: "Software Engineering",
@@ -28,7 +28,7 @@ const spotlights = [
   {
     name: "Kwame Asante",
     programme: "BSc ’24 Computer Science",
-    image: "/images/spotlight/kwame-asante.jpg",
+    image: "/f.jpg",
     quote:
       "The most valuable part of my experience has been learning how to turn an idea into something people can actually use.",
     focus: "Data Science & Innovation",
@@ -36,7 +36,7 @@ const spotlights = [
   {
     name: "Abigail Mensah",
     programme: "BSc ’26 Computer Science",
-    image: "/images/spotlight/abigail-mensah.jpg",
+    image: "/img1.webp",
     quote:
       "My experience in computer science has shown me that technology is not only about writing code. It is about understanding problems and building solutions that matter.",
     focus: "Data Science & Machine Learning",
@@ -44,7 +44,7 @@ const spotlights = [
   {
     name: "Daniel Osei",
     programme: "BSc ’25 Computer Science",
-    image: "/images/spotlight/daniel-osei.jpg",
+    image: "/w.jpg",
     quote:
       "Working with other students has taught me that some of the best ideas come from combining different perspectives, experiences, and ways of thinking.",
     focus: "Cybersecurity & Systems",

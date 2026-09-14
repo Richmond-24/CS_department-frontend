@@ -6,7 +6,7 @@ const programmes = [
     description:
       "Explore our undergraduate programmes designed to provide students with strong foundations in computer science, practical technical skills, problem-solving abilities, and the knowledge needed to succeed in today's technology-driven world.",
     button: "Explore Programmes",
-    image: "/images/programmes/undergraduate.jpg",
+    image: "/img2.jpeg",
     imageAlt: "Computer Science undergraduate student",
     reverse: false,
     icon: GraduationCap,
@@ -16,7 +16,7 @@ const programmes = [
     description:
       "Take your expertise further through our postgraduate programmes. Develop advanced knowledge, conduct meaningful research, and build the skills required to contribute to innovation and the future of computing.",
     button: "Explore Postgraduate",
-    image: "/images/programmes/postgraduate.jpg",
+    image: "/img2.webp",
     imageAlt: "Computer Science postgraduate students",
     reverse: true,
     icon: BookOpen,
@@ -31,7 +31,7 @@ export default function Programmes() {
       ========================================================= */}
       <section className="relative min-h-[520px] overflow-hidden md:min-h-[600px] lg:min-h-[650px]">
         <img
-          src="/images/programmes/programmes-hero.jpg"
+          src="a.jpg"
           alt="Computer Science students"
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -244,7 +244,7 @@ export default function Programmes() {
       ========================================================= */}
       <section className="relative min-h-[520px] overflow-hidden md:min-h-[580px] lg:min-h-[620px]">
         <img
-          src="/images/programmes/start-journey.jpg"
+          src="c.jpg"
           alt="Computer Science students working together"
           className="absolute inset-0 h-full w-full object-cover"
         />

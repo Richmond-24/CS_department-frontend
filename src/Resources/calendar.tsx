@@ -1,9 +1,13 @@
-const calendar = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+// calendar helpers retained but unused; no imports required
 
-export default calendar
+/* ================= SECTION HEADER ================= */
+
+// SectionHeader is unused in this file but may be useful later.
+
+/* ================= RESOURCE ROW ================= */
+
+// ResourceRow is unused here but left for future reuse.
+
+/* ================= DATE ROW ================= */
+
+// DateRow is unused here but left for future reuse.

@@ -3,107 +3,235 @@ import {
   MessageCircle,
   Mail,
   MapPin,
-  Globe,
   Camera,
   BriefcaseBusiness,
   Send,
 } from "lucide-react";
 
-/**
- * Fonts
- * -----
- * Headings use Space Grotesk — a geometric, slightly technical display face
- * that fits a Computer Science & Informatics department without reaching
- * for a generic institutional serif. Body copy stays on Inter for
- * legibility at small sizes. Add both once at the app root (e.g. in
- * `app/layout.tsx` via `next/font/google`, or a <link> in <head>) and expose
- * them as CSS variables:
- *
- *   --font-display: "Space Grotesk", sans-serif;
- *   --font-body: "Inter", sans-serif;
- *
- * This file references them as font-display / font-body below.
- */
-
 const socialLinks = [
-  { label: "Facebook", icon: Globe, href: "#" },
-  { label: "Instagram", icon: Camera, href: "#" },
-  { label: "LinkedIn", icon: BriefcaseBusiness, href: "#" },
-  { label: "X", icon: Send, href: "#" },
+  {
+    label: "Facebook",
+    icon: Camera,
+    href: "#",
+  },
+  {
+    label: "Instagram",
+    icon: Camera,
+    href: "#",
+  },
+  {
+    label: "LinkedIn",
+    icon: BriefcaseBusiness,
+    href: "#",
+  },
+  {
+    label: "X",
+    icon: Send,
+    href: "#",
+  },
 ];
 
 const Footer = () => {
   return (
-    <footer className="relative overflow-hidden bg-[#0b1255] font-[var(--font-body,Inter,sans-serif)] text-white">
-      {/* Background Image */}
+    <footer
+      className="
+        relative
+        overflow-hidden
+        font-[var(--font-body,Inter,sans-serif)]
+        text-white
+      "
+    >
+      {/* =====================================================
+          FULL CAMPUS IMAGE BACKGROUND
+      ===================================================== */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: "url('/images/footer-bg.jpg')",
+          backgroundImage: "url('/u.webp')",
         }}
       />
-      <div className="absolute inset-0 bg-[#0b1255]/95" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-8 py-12 lg:px-12">
-        {/* Campus image banner */}
-        <div className="relative mb-12 aspect-[21/8] w-full overflow-hidden rounded-2xl md:aspect-[21/6]">
-          <img
-            src="/images/campus.jpg"
-            alt="University of Energy and Natural Resources, Fiapre campus"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0b1255] via-[#0b1255]/10 to-transparent" />
-          <p className="absolute bottom-4 left-5 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-sm font-medium tracking-wide text-white/90">
-            Fiapre Campus, Sunyani
-          </p>
-        </div>
+      {/* =====================================================
+          BLUE OVERLAY
+          Lower opacity keeps the campus visible
+      ===================================================== */}
+      <div className="absolute inset-0 bg-[#07145c]/55" />
 
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
-          {/* Contact */}
+      {/* =====================================================
+          SUBTLE GRADIENT FOR TEXT READABILITY
+      ===================================================== */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#07145c]/60 via-[#07145c]/40 to-[#07145c]/55" />
+
+      {/* =====================================================
+          FOOTER CONTENT
+      ===================================================== */}
+      <div
+        className="
+          relative
+          z-10
+          mx-auto
+          max-w-7xl
+          px-6
+          py-12
+          sm:px-8
+          lg:px-12
+          lg:py-14
+        "
+      >
+        {/* ===================================================
+            FOUR COLUMN FOOTER
+        =================================================== */}
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-12
+            md:grid-cols-2
+            lg:grid-cols-4
+            lg:gap-10
+          "
+        >
+          {/* =================================================
+              COLUMN 1 — CONTACT
+          ================================================= */}
           <div>
-            <h3 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-[15px] font-semibold leading-5 tracking-wide text-white/70">
+            {/* Department */}
+            <h3
+              className="
+                font-[var(--font-display,'Space_Grotesk',sans-serif)]
+                text-[16px]
+                font-bold
+                uppercase
+                leading-5
+                tracking-wide
+                text-white
+              "
+            >
               Computer Science
               <br />
               and Informatics
             </h3>
 
-            <h2 className="mt-6 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-[26px] font-medium leading-tight">
-              Get in touch
+            {/* Get in Touch */}
+            <h2
+              className="
+                mt-5
+                font-[var(--font-display,'Space_Grotesk',sans-serif)]
+                text-2xl
+                font-semibold
+                leading-tight
+              "
+            >
+              Get in Touch
             </h2>
 
-            <div className="mt-4 space-y-3 text-[16px]">
+            {/* Contact Details */}
+            <div className="mt-4 space-y-3 text-[15px] text-white/95">
+              {/* Phone */}
               <div className="flex items-center gap-3">
                 <a
                   href="tel:+2330000000"
                   aria-label="Call us"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/90 transition hover:bg-[#0794ce] hover:text-white"
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/15
+                    transition
+                    hover:bg-[#0794ce]
+                  "
                 >
-                  <Phone size={15} />
+                  <Phone size={14} />
                 </a>
+
+                <a
+                  href="tel:+2330000000"
+                  className="transition hover:text-cyan-300"
+                >
+                  +233 00 000 0000
+                </a>
+              </div>
+
+              {/* WhatsApp */}
+              <div className="flex items-center gap-3">
                 <a
                   href="https://wa.me/23300000000"
                   aria-label="Message us on WhatsApp"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/90 transition hover:bg-[#0794ce] hover:text-white"
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/15
+                    transition
+                    hover:bg-[#0794ce]
+                  "
                 >
-                  <MessageCircle size={15} />
+                  <MessageCircle size={14} />
                 </a>
-                <span>+233 00 000 0000</span>
+
+                <a
+                  href="https://wa.me/23300000000"
+                  className="transition hover:text-cyan-300"
+                >
+                  WhatsApp
+                </a>
               </div>
 
+              {/* Email */}
               <a
                 href="mailto:info@uenr.csi.edu.gh"
-                className="flex items-center gap-3 transition hover:text-[#4cc6f0]"
+                className="
+                  flex
+                  items-center
+                  gap-3
+                  transition
+                  hover:text-cyan-300
+                "
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
-                  <Mail size={15} />
+                <span
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/15
+                  "
+                >
+                  <Mail size={14} />
                 </span>
+
                 <span>info@uenr.csi.edu.gh</span>
               </a>
 
+              {/* Location */}
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
-                  <MapPin size={15} />
+                <span
+                  className="
+                    mt-0.5
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/15
+                  "
+                >
+                  <MapPin size={14} />
                 </span>
+
                 <span className="leading-5">
                   Sunyani-Berekum Road,
                   <br />
@@ -112,52 +240,120 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Admissions */}
-            <h2 className="mt-6 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-[22px] font-medium leading-tight">
-              Admissions call center
+            {/* =================================================
+                ADMISSIONS
+            ================================================= */}
+            <h2
+              className="
+                mt-7
+                font-[var(--font-display,'Space_Grotesk',sans-serif)]
+                text-xl
+                font-semibold
+                leading-tight
+              "
+            >
+              Admissions Call Center
             </h2>
 
-            <div className="mt-3 space-y-3 text-[16px]">
+            <div className="mt-3 space-y-3 text-[15px] text-white/95">
+              {/* Phone */}
               <div className="flex items-center gap-3">
                 <a
                   href="tel:+2330000000"
                   aria-label="Call admissions"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/90 transition hover:bg-[#0794ce] hover:text-white"
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/15
+                    transition
+                    hover:bg-[#0794ce]
+                  "
                 >
-                  <Phone size={15} />
+                  <Phone size={14} />
                 </a>
+
                 <a
-                  href="https://wa.me/23300000000"
-                  aria-label="Message admissions on WhatsApp"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/90 transition hover:bg-[#0794ce] hover:text-white"
+                  href="tel:+2330000000"
+                  className="transition hover:text-cyan-300"
                 >
-                  <MessageCircle size={15} />
+                  +233 00 000 0000
                 </a>
-                <span>+233 00 000 0000</span>
               </div>
 
+              {/* Email */}
               <a
                 href="mailto:info@uenr.csi.edu.gh"
-                className="flex items-center gap-3 transition hover:text-[#4cc6f0]"
+                className="
+                  flex
+                  items-center
+                  gap-3
+                  transition
+                  hover:text-cyan-300
+                "
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
-                  <Mail size={15} />
+                <span
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/15
+                  "
+                >
+                  <Mail size={14} />
                 </span>
+
                 <span>info@uenr.csi.edu.gh</span>
               </a>
             </div>
           </div>
 
-          {/* Explore */}
+          {/* =================================================
+              COLUMN 2 — EXPLORE
+          ================================================= */}
           <div>
-            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-medium">
+            <h2
+              className="
+                font-[var(--font-display,'Space_Grotesk',sans-serif)]
+                text-2xl
+                font-semibold
+              "
+            >
               Explore
             </h2>
 
-            <ul className="mt-4 space-y-2 text-[17px] text-white/85">
-              {["About", "Programmes", "Research", "News & Events", "Careers"].map((item) => (
+            <ul
+              className="
+                mt-5
+                space-y-3
+                text-[15px]
+                font-medium
+                text-white/90
+              "
+            >
+              {[
+                "About",
+                "Programmes",
+                "Research",
+                "News & Events",
+                "Careers",
+              ].map((item) => (
                 <li key={item}>
-                  <a href="#" className="transition hover:text-[#4cc6f0]">
+                  <a
+                    href="#"
+                    className="
+                      transition
+                      hover:text-cyan-300
+                    "
+                  >
                     {item}
                   </a>
                 </li>
@@ -165,74 +361,181 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Students */}
+          {/* =================================================
+              COLUMN 3 — STUDENTS
+          ================================================= */}
           <div>
-            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-medium">
+            <h2
+              className="
+                font-[var(--font-display,'Space_Grotesk',sans-serif)]
+                text-2xl
+                font-semibold
+              "
+            >
               Students
             </h2>
 
-            <ul className="mt-4 space-y-2 text-[17px] text-white/85">
-              {["Student Portal", "Resources", "Academic Information", "Eligibility Checker", "FAQs"].map(
-                (item) => (
-                  <li key={item}>
-                    <a href="#" className="transition hover:text-[#4cc6f0]">
-                      {item}
-                    </a>
-                  </li>
-                ),
-              )}
+            <ul
+              className="
+                mt-5
+                space-y-3
+                text-[15px]
+                font-medium
+                text-white/90
+              "
+            >
+              {[
+                "Student Portal",
+                "Resources",
+                "Academic Information",
+                "Eligibility Checker",
+                "FAQs",
+              ].map((item) => (
+                <li key={item}>
+                  <a
+                    href="#"
+                    className="
+                      transition
+                      hover:text-cyan-300
+                    "
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* =================================================
+              COLUMN 4 — NEWSLETTER
+          ================================================= */}
           <div>
-            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-medium">
-              Subscribe to newsletter
+            <h2
+              className="
+                font-[var(--font-display,'Space_Grotesk',sans-serif)]
+                text-2xl
+                font-semibold
+                leading-tight
+              "
+            >
+              Subscribe to Newsletter
             </h2>
 
-            <form className="mt-4">
+            {/* Newsletter Form */}
+            <form className="mt-5">
               <input
                 type="email"
-                placeholder="Enter email address"
-                className="h-12 w-full rounded-xl border-none bg-[#e7f7fc] px-4 text-[17px] text-[#080d4f] outline-none placeholder:text-[#7a86a9]"
+                placeholder="Enter Email Address"
+                className="
+                  h-11
+                  w-full
+                  rounded-lg
+                  border
+                  border-white/20
+                  bg-white/95
+                  px-4
+                  text-[15px]
+                  text-slate-900
+                  outline-none
+                  placeholder:text-slate-500
+                  focus:ring-2
+                  focus:ring-cyan-400
+                "
               />
+
               <button
                 type="submit"
-                className="mt-2 h-14 w-full rounded-xl bg-[#0794ce] text-lg font-bold transition hover:bg-[#067eaf]"
+                className="
+                  mt-2
+                  h-11
+                  w-full
+                  rounded-lg
+                  bg-[#0794ce]
+                  text-[15px]
+                  font-bold
+                  text-white
+                  transition
+                  hover:bg-[#067eaf]
+                "
               >
                 Subscribe
               </button>
             </form>
 
-            {/* Social Icons */}
+            {/* =================================================
+                SOCIAL MEDIA
+            ================================================= */}
             <div className="mt-5 flex gap-3">
-              {socialLinks.map(({ label, icon: Icon, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/90 transition hover:-translate-y-0.5 hover:border-[#0794ce] hover:bg-[#0794ce] hover:text-white"
-                >
-                  {Icon ? <Icon size={18} /> : <span className="text-lg font-medium">𝕏</span>}
-                </a>
-              ))}
+              {socialLinks.map(
+                ({ label, icon: Icon, href }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    aria-label={label}
+                    className="
+                      flex
+                      h-9
+                      w-9
+                      items-center
+                      justify-center
+                      rounded-md
+                      bg-white/90
+                      text-[#07145c]
+                      transition
+                      hover:-translate-y-0.5
+                      hover:bg-[#0794ce]
+                      hover:text-white
+                    "
+                  >
+                    <Icon size={16} />
+                  </a>
+                ),
+              )}
             </div>
 
-            {/* Copyright */}
-            <div className="mt-24 text-xs leading-5 text-white/60">
+            {/* =================================================
+                COPYRIGHT
+            ================================================= */}
+            <div
+              className="
+                mt-12
+                text-[10px]
+                leading-4
+                text-white/75
+              "
+            >
               <p>
                 © 2026 Computer Science & Informatics
                 <br />
                 Department. All rights reserved
               </p>
 
-              <p className="mt-2 space-x-1">
-                <a href="#" className="hover:text-white">Privacy Policy</a>
+              <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
+                <a
+                  href="#"
+                  className="transition hover:text-white"
+                >
+                  Privacy Policy
+                </a>
+
                 <span>|</span>
-                <a href="#" className="hover:text-white">Terms</a>
+
+                <a
+                  href="#"
+                  className="transition hover:text-white"
+                >
+                  Terms
+                </a>
+
                 <span>|</span>
-                <a href="#" className="hover:text-white">University Website</a>
-              </p>
+
+                <a
+                  href="#"
+                  className="transition hover:text-white"
+                >
+                  University Website
+                </a>
+              </div>
             </div>
           </div>
         </div>

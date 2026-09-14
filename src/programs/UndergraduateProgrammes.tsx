@@ -32,7 +32,7 @@ export default function UndergraduateProgrammes() {
       <section className="relative overflow-hidden bg-[#080d4f]">
         <div className="absolute inset-0">
           <Image
-            src="/images/programmes/undergraduate-hero.jpg"
+            src="/img2.jpeg"
             alt=""
             fill
             priority
@@ -68,7 +68,9 @@ export default function UndergraduateProgrammes() {
 
             <div className="mt-7 flex flex-wrap gap-3">
               <a
-                href="#contact"
+                href="https://admissions.uenr.edu.gh"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#079bd3] px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-[#0689bb] hover:-translate-y-0.5"
               >
                 Apply Online
@@ -156,14 +158,18 @@ export default function UndergraduateProgrammes() {
               {/* ACTIONS */}
               <div className="space-y-2">
                 <a
-                  href="#contact"
+                  href="https://admissions.uenr.edu.gh"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex w-full items-center justify-center rounded-lg border border-[#203b82] px-4 py-2.5 text-sm font-semibold text-[#080d4f] transition-all hover:bg-[#080d4f] hover:text-white"
                 >
-                  Contact Us
+                  Contact Admissions
                 </a>
 
                 <a
-                  href="#contact"
+                  href="https://admissions.uenr.edu.gh"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex w-full items-center justify-center rounded-lg bg-[#079bd3] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#0689bb]"
                 >
                   Apply Online

@@ -52,7 +52,7 @@ const slides: Slide[] = [
   },
 
   {
-    image: "/img3.webp",
+    image: "/img2.jpeg",
     eyebrow: "LEARN • CREATE • INNOVATE",
     title: (
       <>
@@ -70,7 +70,7 @@ const slides: Slide[] = [
   },
 
   {
-    image: "/img4.webp",
+    image: "/c.jpg",
     eyebrow: "YOUR FUTURE STARTS HERE",
     title: (
       <>
@@ -88,7 +88,7 @@ const slides: Slide[] = [
   },
 
   {
-    image: "/img5.webp",
+    image: "/f.jpg",
     eyebrow: "COMPUTER SCIENCE & INFORMATICS",
     title: (
       <>

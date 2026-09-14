@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "../components/Image";
 import { Mail, ArrowRight } from "lucide-react";
+import teachingStaff from "../data/staffData";
 
 // Minimal inline LinkedIn icon to avoid depending on a non-exported member from lucide-react
 const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -23,127 +24,6 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const teachingStaff = [
-  {
-    name: "Prof. Patrick K. Mensah",
-    role: "Head of Department",
-    specialization: "Artificial Intelligence & Computer Science",
-    image: "/tech0.webp",
-
-    email: "patrick.mensah@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/patrick-mensah",
-  },
-
-  {
-    name: "Assoc. prof. Obed",
-    role: "Senior Lecturer",
-    specialization: "Information Technology & Networks",
-    image: "/tech3.jpg",
-
-    email: "fred.asante@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/fred-asante",
-  },
-
-  {
-    name: "Dr. Vivian ",
-    role: "Senior Lecturer",
-    specialization: "Quantum Computing",
-    image: "/tech4.jpg",
-
-    email: "peter.mensah@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/peter-mensah",
-  },
-
-  {
-    name: "Dr. Faiza",
-    role: "Lecturer",
-    specialization: "Data Science & Machine Learning",
-    image: "/tech8.jpg",
-
-    email: "ama.owusu@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/ama-owusu",
-  },
-
-  {
-    name: "Dr.Mighty Aydzoe",
-    role: "Lecturer",
-    specialization: "Software Engineering",
-    image: "/tech1.jpg",
-
-    email: "daniel.boateng@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/daniel-boateng",
-  },
-   
-  {
-    name: "Dr.Awarigi Nicomdemus",
-    role: "Lecturer",
-    specialization: "Cybersecurity & Computer Networks",
-    image: "/tech2.jpg",
-
-    email: "michael.asare@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/michael-asare",
-  },
-
-  {
-    name: "Dr. Peter Nimbe",
-    role: "Lecturer",
-    specialization: "Cybersecurity & Computer Networks",
-    image: "/tech5.jpg",
-
-    email: "michael.asare@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/michael-asare",
-  },
-
-   
-    {
-    name: "Dr. Peter Nimbe",
-    role: "Lecturer",
-    specialization: "Cybersecurity & Computer Networks",
-    image: "/tech7.jpg",
-
-    email: "michael.asare@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/michael-asare",
-  },
-    {
-    name: "Mr.",
-    role: "Lecturer",
-    specialization: "Cybersecurity & Computer Networks",
-    image: "/",
-
-    email: "michael.asare@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "#people/michael-asare",
-  },
-    {
-    name: "Dr. Peter Nimbe",
-    role: "Lecturer",
-    specialization: "Cybersecurity & Computer Networks",
-    image: "/",
-
-    email: "michael.asare@uenr.edu.gh",
-    linkedin: "https://www.linkedin.com/",
-    tiktok: "https://www.tiktok.com/",
-    profile: "/people/michael-asare",
-  },
-];
-
 /* ============================================================
    TIKTOK ICON
 ============================================================ */
@@ -160,20 +40,15 @@ function TikTokIcon({ size = 19 }: { size?: number }) {
     >
       <path
         d="M15.5 4.2C16.1 6.1 17.5 7.4 19.4 7.7V10.8C17.9 10.7 16.5 10.2 15.3 9.4V15.7C15.3 19.2 12.6 21.2 9.6 21.2C6.5 21.2 4.2 19.1 4.2 16C4.2 12.8 6.7 10.5 9.7 10.5C10.2 10.5 10.7 10.6 11.2 10.7V13.9C10.8 13.7 10.4 13.6 9.9 13.6C8.6 13.6 7.5 14.5 7.5 15.9C7.5 17.3 8.5 18.2 9.7 18.2C11 18.2 12 17.4 12 15.7V3H15.5V4.2Z"
-        fill="currentColor"
       />
     </svg>
-  );
+  )
 }
-
-/* ============================================================
-   STAFF CARD
-============================================================ */
 
 function StaffCard({
   person,
 }: {
-  person: (typeof teachingStaff)[number];
+  person: any;
 }) {
   return (
     <article
@@ -357,7 +232,7 @@ function StaffCard({
         =================================================== */}
 
         <a
-          href={person.profile}
+          href={`#people/${person.id}`}
           className="
             group/profile
             mt-5

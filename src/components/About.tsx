@@ -14,9 +14,9 @@ import {
 
 const galleryImages = [
   { src: "/img1.webp", alt: "Computer science student", className: "col-start-1 row-start-1" },
-  { src: "/img1.webp", alt: "Department technology message", className: "col-start-2 row-start-1 row-span-2", overlay: true },
-  { src: "/img1.webp", alt: "Computer science students", className: "col-start-3 row-start-1" },
-  { src: "/img2.webp", alt: "Computer science student", className: "col-start-1 row-start-2" },
+  { src: "/img2.webp", alt: "Department technology message", className: "col-start-2 row-start-1 row-span-2", overlay: true },
+  { src: "/img1.jpg", alt: "Computer science students", className: "col-start-3 row-start-1" },
+  { src: "/img2.jpeg", alt: "Computer science student", className: "col-start-1 row-start-2" },
   { src: "/a.jpg", alt: "Computer laboratory", className: "col-start-3 row-start-2" },
 ];
 
