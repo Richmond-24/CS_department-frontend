@@ -142,7 +142,7 @@ const Home = () => {
 
   return (
     <main
-      className="w-full bg-white text-[#080b50] font-['Lufga']"
+      className="w-full bg-white text-[var(--color-navy)]"
       style={{ fontFamily: "Lufga, sans-serif" }}
     >
       {/* =====================================================
@@ -199,7 +199,7 @@ const Home = () => {
             <div className="mb-5 flex items-center gap-3">
               <span className="h-[3px] w-10 rounded-full bg-[#0798d1]" />
 
-              <span className="text-[12px] font-semibold tracking-[2px] text-white/90 sm:text-[14px]">
+              <span className="text-[12px] font-semibold tracking-[2px] text-[var(--color-sky)] sm:text-[14px]">
                 {slide.eyebrow}
               </span>
             </div>
@@ -218,7 +218,7 @@ const Home = () => {
             <div className="mt-8">
               <a
                 href={slide.buttonLink}
-                className="group inline-flex items-center gap-3 rounded-lg bg-[#0798d1] px-7 py-4 text-[16px] font-semibold text-white shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-1 hover:bg-[#0787bb] hover:shadow-xl"
+                className="group inline-flex items-center gap-3 rounded-lg bg-[var(--color-cyan)] px-7 py-4 text-[16px] font-semibold text-white shadow-lg shadow-[rgba(6,7,64,0.18)] transition-all duration-300 hover:-translate-y-1 hover:bg-[var(--color-royal)] hover:shadow-xl"
               >
                 {slide.button}
 
@@ -239,7 +239,7 @@ const Home = () => {
           type="button"
           onClick={previousSlide}
           aria-label="Previous slide"
-          className="group absolute left-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#080b50] sm:left-6"
+          className="group absolute left-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[var(--color-navy)] sm:left-6"
         >
           <ChevronLeft
             size={25}
@@ -255,7 +255,7 @@ const Home = () => {
           type="button"
           onClick={nextSlide}
           aria-label="Next slide"
-          className="group absolute right-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[#080b50] sm:right-6"
+          className="group absolute right-4 top-1/2 z-30 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[var(--color-navy)] sm:right-6"
         >
           <ChevronRight
             size={25}
@@ -304,7 +304,7 @@ const Home = () => {
         {!isPaused && (
           <div
             key={currentSlide}
-            className="absolute bottom-0 left-0 z-30 h-[3px] bg-[#0798d1] animate-[sliderProgress_3s_linear]"
+            className="absolute bottom-0 left-0 z-30 h-[3px] bg-[var(--color-sky)] animate-[sliderProgress_3s_linear]"
           />
         )}
       </section>
