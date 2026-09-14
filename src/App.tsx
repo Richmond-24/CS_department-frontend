@@ -15,8 +15,7 @@ import ResourcesPage from './Resources/ResourcesPage'
 import NewsPage from './News/NewsPage'
 import ContactPage from './Contact/ContactPage'
 import ResearchPage from './Research/ResearchPage'
-import EligibilityChecker from './Elegibilty_Checker/home'
-
+import EligibilityChecker from './components/EligibilityChecker'
 function DropdownLoader({ label }: { label: string }) {
   return (
     <div className="route-loader" aria-live="polite" aria-label={`${label} loading`}>
