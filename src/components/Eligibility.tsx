@@ -1,6 +1,10 @@
 {/* Eligibility checker component design page */}
 
-const Eligibility = () => {
+interface EligibilityProps {
+  onNavigate: (route: string, label: string) => void
+}
+
+const Eligibility = ({ onNavigate }: EligibilityProps) => {
   return (
     <section className="relative w-full overflow-hidden">
       {/* Background Image */}
@@ -27,9 +31,7 @@ const Eligibility = () => {
 
         <button
           type="button"
-          onClick={() => {
-            window.location.hash = '#eligibility-checker'
-          }}
+          onClick={() => onNavigate('#eligibility-checker', 'Eligibility Checker')}
           className="mt-10 rounded-xl bg-[#0794ce] px-5 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-[#067eaf] hover:shadow-lg"
         >
           Check Eligibility

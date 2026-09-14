@@ -19,11 +19,22 @@ import EligibilityChecker from './Elegibilty_Checker/home'
 
 function DropdownLoader({ label }: { label: string }) {
   return (
-    <div className="route-loader" aria-live="polite" aria-label={`${label} loading`}>
-      <div className="route-loader__spinner" aria-hidden="true" />
-      <p className="route-loader__label">Loading {label}...</p>
+    <div className="route-loader-overlay" aria-live="polite" aria-label={`${label} loading`}>
+      <div className="route-loader">
+        <div className="route-loader__spinner" aria-hidden="true" />
+        <p className="route-loader__label">Loading {label}...</p>
+      </div>
     </div>
   )
+}
+
+// The site sets `html { scroll-behavior: smooth; }` globally (in index.css)
+// so that in-page anchor links (e.g. "#apply") animate nicely. Passing
+// behavior: 'instant' here explicitly overrides that CSS rule for this one
+// scroll, forcing a true instant jump instead of animating — without
+// touching or disabling smooth scrolling anywhere else on the site.
+function scrollToTopInstantly() {
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
 }
 
 function App() {
@@ -44,6 +55,8 @@ function App() {
     setLoadingLabel(label)
     setIsLoading(true)
 
+    scrollToTopInstantly()
+
     if (window.location.hash !== route) {
       window.location.hash = route
     }
@@ -54,13 +67,11 @@ function App() {
     }, 700)
   }, [])
 
-  // Scroll to top whenever the active route actually changes — this fires
-  // regardless of *how* navigation happened (button clicks via openSection,
-  // plain <a href="#..."> links, or the browser back/forward button, all of
-  // which update activeRoute one way or another). Putting the scroll reset
-  // here instead of inside openSection is what makes it catch every case.
+  // Fallback for navigation that skips openSection entirely (a plain
+  // <a href="#..."> link, or the browser back/forward buttons) — both
+  // update activeRoute via the hashchange listener above.
   React.useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    scrollToTopInstantly()
   }, [activeRoute])
 
   const programmePath =
@@ -105,7 +116,7 @@ function App() {
             <Stats />
             <About />
             <Programmes />
-            <Eligibility />
+            <Eligibility onNavigate={openSection} />
             <OverviewPage />
             <SpotlightSection />
           </>
@@ -152,7 +163,7 @@ function App() {
             <Stats />
             <About />
             <Programmes />
-            <Eligibility />
+            <Eligibility onNavigate={openSection} />
             <OverviewPage />
             <SpotlightSection />
           </>
@@ -199,11 +210,8 @@ function App() {
   return (
     <>
       <Header onNavigate={openSection} activeRoute={activeRoute} />
-      {isLoading ? (
-        <DropdownLoader label={loadingLabel} />
-      ) : (
-        <div className="page-shell">{renderedPage}</div>
-      )}
+      <div className="page-shell">{renderedPage}</div>
+      {isLoading && <DropdownLoader label={loadingLabel} />}
       <Footer />
     </>
   )
