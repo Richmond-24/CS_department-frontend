@@ -3,11 +3,13 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import Home from './components/HomePage'
 import Stats from './components/statisticsPage'
-import About from './components/About'
 import Programmes from './components/Academics'
-import Eligibility from './components/Eligibility'
+import About from './components/about'
+import AboutOverview from './about/About'
 import OverviewPage from './components/OverviewPage'
 import SpotlightSection from './components/SpotlightSection'
+import Eligibility from './components/Eligibility'
+import CareerProspects from './components/CareerProspects'
 import ProgrammesPage from './programs/ProgrammesPage'
 import PeoplePage from './People/PeoplePage'
 import PersonProfile from './People/PersonProfile'
@@ -105,12 +107,13 @@ function App() {
             <About />
             <Programmes />
             <Eligibility />
+            <CareerProspects />
             <OverviewPage />
             <SpotlightSection />
           </>
         )
       case '#about':
-        return <About />
+        return <AboutOverview />
       case '#research':
         return <ResearchPage />
       case '#undergraduate':
@@ -152,6 +155,7 @@ function App() {
             <About />
             <Programmes />
             <Eligibility />
+            <CareerProspects />
             <OverviewPage />
             <SpotlightSection />
           </>

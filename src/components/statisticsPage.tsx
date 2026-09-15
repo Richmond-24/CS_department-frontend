@@ -1,4 +1,5 @@
 
+import { useEffect, useRef, useState } from "react";
 import {
   UserRound,
   GraduationCap,
@@ -9,29 +10,110 @@ import {
 const Statistics = () => {
   const statistics = [
     {
-      value: "600+",
+      value: 2000,
+      suffix: "+",
       label: "Students",
       description: "Currently enrolled",
       icon: UserRound,
     },
     {
-      value: "50k+",
+      value: 50000,
+      suffix: "+",
       label: "Graduates",
       description: "Alumni community",
       icon: GraduationCap,
     },
     {
-      value: "5+",
+      value: 5,
+      suffix: "+",
       label: "Years",
       description: "Building computing talent",
       icon: Building2,
     },
   ];
 
+  // Store the animated numbers
+  const [counts, setCounts] = useState<number[]>(
+    statistics.map(() => 0)
+  );
+
+  // Detect when the statistics section enters the screen
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasStarted) {
+          setHasStarted(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.25,
+      }
+    );
+
+    observer.observe(section);
+
+    return () => observer.disconnect();
+  }, [hasStarted]);
+
+  // Animate all numbers automatically
+  useEffect(() => {
+    if (!hasStarted) return;
+
+    const durations = [1800, 2200, 1200];
+
+    const timers = statistics.map((stat, index) => {
+      const target = stat.value;
+      const duration = durations[index];
+      const startTime = performance.now();
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Smooth ease-out animation
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+
+        const currentValue = Math.floor(target * easeOut);
+
+        setCounts((previous) => {
+          const updated = [...previous];
+          updated[index] = currentValue;
+          return updated;
+        });
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setCounts((previous) => {
+            const updated = [...previous];
+            updated[index] = target;
+            return updated;
+          });
+        }
+      };
+
+      return requestAnimationFrame(animate);
+    });
+
+    return () => {
+      timers.forEach((timer) => cancelAnimationFrame(timer));
+    };
+  }, [hasStarted]);
+
   return (
     <main className="min-h-screen bg-white px-5 py-12 text-[#080b50] sm:px-6 md:px-10 lg:px-12 lg:py-16">
-      <section className="mx-auto max-w-[1200px]">
-
+      <section
+        ref={sectionRef}
+        className="mx-auto max-w-[1200px]"
+      >
         {/* PAGE HEADER */}
         <div className="mb-8 text-center md:mb-10">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#203b82]">
@@ -50,7 +132,7 @@ const Statistics = () => {
 
         {/* STATISTICS */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
-          {statistics.map((stat) => {
+          {statistics.map((stat, index) => {
             const Icon = stat.icon;
 
             return (
@@ -72,8 +154,12 @@ const Statistics = () => {
                 {/* NUMBER + LABEL */}
                 <div className="mt-8">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-[42px] font-extrabold leading-none tracking-[-2.5px] text-[#080b50] sm:text-[44px]">
-                      {stat.value}
+                    <span
+                      className="text-[42px] font-extrabold leading-none tracking-[-2.5px] text-[#080b50] sm:text-[44px]"
+                      aria-label={`${counts[index]}${stat.suffix} ${stat.label}`}
+                    >
+                      {counts[index].toLocaleString()}
+                      {stat.suffix}
                     </span>
                   </div>
 
@@ -93,21 +179,7 @@ const Statistics = () => {
           })}
         </div>
 
-        {/* ABOUT */}
-        <div className="mt-12 max-w-4xl">
-          <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#080b50] sm:text-3xl">
-            About
-          </h2>
-
-          <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-            The Department of Computer Science and Informatics is committed to
-            providing quality computing education, developing innovative
-            solutions, and preparing students with the knowledge and skills
-            needed to contribute meaningfully to the technology industry and
-            society.
-          </p>
-        </div>
-
+       
       </section>
     </main>
   );
