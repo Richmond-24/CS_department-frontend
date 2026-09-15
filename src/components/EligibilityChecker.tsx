@@ -1,19 +1,13 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  ArrowLeft,
-  Check,
-  X,
-  XCircle,
-  AlertTriangle,
-  AlertCircle,
-  ChevronDown,
-} from "lucide-react";
+import {ArrowLeft, Check, X, XCircle, PlusCircle, AlertTriangle, AlertCircle, ChevronDown} from "lucide-react";
 
-// ===========================================================================
-// GRADE SCALE — single source of truth
+// CONFIG — external links
 // ===========================================================================
 
+const APPLY_URL = "https://admissions.uenr.edu.gh/login";
+
+// GRADE SCALE — Computation logic
 const GRADE_INFO = {
   A1: { rank: 1, points: 8 },
   B2: { rank: 2, points: 7 },
@@ -47,9 +41,7 @@ function isQualifyingGrade(grade: Grade): boolean {
   return rank >= 1 && rank <= 6;
 }
 
-// ===========================================================================
 // ELIGIBILITY LOGIC
-// ===========================================================================
 
 interface EligibilityFormData {
   english: Grade;
@@ -182,9 +174,7 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
   };
 }
 
-// ===========================================================================
 // CS AREA MATCHING
-// ===========================================================================
 
 interface AreaMatch {
   key: string;
@@ -261,10 +251,7 @@ function matchCsAreas(form: EligibilityFormData): AreaMatch[] {
   return areas.sort((a, b) => b.fitPercent - a.fitPercent);
 }
 
-// ===========================================================================
 // SHARED UI PRIMITIVES
-// ===========================================================================
-
 type Tab = "checker" | "requirements" | "faqs";
 type Step =
   | { kind: "form" }
@@ -278,18 +265,7 @@ const labelClass =
 const focusRing =
   "focus:border-[#203b82] focus:ring-2 focus:ring-[#203b82]/20 outline-none";
 
-// ===========================================================================
-// GradeSelect — RESIZED dropdown
-// ===========================================================================
-//
-// Sizing changes vs. previous version:
-//   • Mobile: min-h-[42px] (was 44) — still accessible, feels tighter.
-//   • Desktop: min-h-[38px] (sm:min-h-0 removed) — compact like a real form.
-//   • Padding: py-2 (was py-2.5) and pl-2.5 (was pl-3) — narrower footprint.
-//   • Font: 15px on mobile (was 16), 14px on desktop (was 15) — smaller.
-//   • Chevron: h-3.5 w-3.5 (was h-4 w-4), right-2.5 (was right-3) — snugger.
-//   • Max width: max-w-[280px] on sm+ so wide rows don't stretch the field.
-
+// GradeSelect — responsive, compact dropdown
 interface GradeSelectProps {
   value: Grade;
   onChange: (g: Grade) => void;
@@ -332,12 +308,9 @@ function GradeSelect({
           aria-required={required}
           aria-describedby={helperId}
           className={[
-            // Base shape
             "w-full appearance-none rounded-md border border-gray-300 bg-white",
-            // RESIZED: compact padding + narrower chevron space
             "py-2 pl-2.5 pr-8 text-[15px] sm:py-1.5 sm:text-[14px]",
             "text-[#080b50] transition-colors",
-            // RESIZED: shorter min-height, still meets tap target on mobile
             "min-h-[42px] sm:min-h-[38px]",
             focusRing,
           ].join(" ")}
@@ -352,7 +325,6 @@ function GradeSelect({
 
         <ChevronDown
           aria-hidden="true"
-          // RESIZED: smaller chevron, tighter right offset
           className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500"
         />
       </div>
@@ -366,10 +338,7 @@ function GradeSelect({
   );
 }
 
-// ===========================================================================
-// TextInput — matched size to the new GradeSelect
-// ===========================================================================
-
+// TextInput
 interface TextInputProps {
   value: string;
   onChange: (v: string) => void;
@@ -393,7 +362,6 @@ function TextInput({ value, onChange, label, placeholder }: TextInputProps) {
         placeholder={placeholder}
         className={[
           "w-full rounded-md border border-gray-300 bg-white",
-          // RESIZED: matches GradeSelect
           "px-2.5 py-2 text-[15px] sm:py-1.5 sm:text-[14px]",
           "text-[#080b50] transition-colors placeholder:text-gray-400",
           "min-h-[42px] sm:min-h-[38px]",
@@ -404,10 +372,7 @@ function TextInput({ value, onChange, label, placeholder }: TextInputProps) {
   );
 }
 
-// ===========================================================================
 // MainHeader
-// ===========================================================================
-
 function MainHeader() {
   return (
     <div className="mb-6 text-center sm:mb-10">
@@ -422,10 +387,7 @@ function MainHeader() {
   );
 }
 
-// ===========================================================================
 // TabBar
-// ===========================================================================
-
 function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const tabs: { key: Tab; label: string; short: string }[] = [
     { key: "checker", label: "Eligibility Checker", short: "Checker" },
@@ -466,10 +428,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   );
 }
 
-// ===========================================================================
-// IncompleteModal — Portal, scroll-locked, always centered in viewport
-// ===========================================================================
-
+// IncompleteModal — Portal, scroll-locked, always centered in viewport(scroll effect)
 function IncompleteModal({
   totalElectivesEntered,
   hasElectiveMath,
@@ -488,7 +447,6 @@ function IncompleteModal({
     return () => clearTimeout(timer);
   }, []);
 
-  // Lock body scroll while modal is open.
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     const originalPaddingRight = document.body.style.paddingRight;
@@ -576,69 +534,419 @@ function IncompleteModal({
   );
 }
 
-// ===========================================================================
-// Static panels
-// ===========================================================================
-
-function RequirementsPanel() {
+function InfoBanner() {
   return (
-    <div className="py-3 text-[#080b50] sm:py-6">
-      <h3 className="mb-4 text-[17px] font-bold sm:mb-6 sm:text-[22px]">
-        Minimum WASSCE Requirements
-      </h3>
-      <ul className="space-y-3 text-[14px] leading-relaxed text-gray-700 sm:space-y-6 sm:text-[16px]">
-        <li className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
-          <span className="mb-1 block font-bold text-[#080b50]">Core Subjects (Required)</span>
-          English Language, Core Mathematics, and Integrated Science.
-        </li>
-        <li className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
-          <span className="mb-1 block font-bold text-[#080b50]">Elective Subjects</span>
-          Elective Mathematics is required. You also need at least two further electives (Physics, Chemistry, Biology,
-          Elective ICT, or another elective you name).
-        </li>
-        <li className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-4">
-          <span className="mb-1 block font-bold text-[#080b50]">Minimum Grade Threshold</span>
-          A1–C6 counts as a qualifying grade for every subject above.
-        </li>
-      </ul>
+    <div className="mt-8 flex gap-3 rounded-lg border border-[#203b82]/20 bg-[#D9EEFF] p-3.5 sm:mt-10 sm:gap-4 sm:p-5">
+      <div className="flex shrink-0 flex-col items-center pt-0.5">
+        <AlertTriangle
+          className="h-4 w-4 shrink-0 text-[#060740] sm:h-5 sm:w-5"
+          aria-hidden="true"
+        />
+        <div className="mt-1.5 w-[1.5px] flex-1 bg-[#18337A]/70" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[12.5px] font-bold leading-snug text-[#060740] sm:text-[13.5px]">
+          Important: Minimum Requirements ≠ Guaranteed Admission
+        </p>
+        <p className="mt-1 text-[12px] leading-relaxed text-[#060740]/85 sm:text-[13px]">
+          Meeting the minimum academic requirements means that you meet the basic
+          eligibility criteria for consideration. Admission may still depend on the
+          University&apos;s admission process, programme capacity, and any additional
+          requirements.
+        </p>
+      </div>
     </div>
   );
 }
 
-const FAQS = [
+function PanelCta({
+  prompt,
+  onSwitchToChecker,
+}: {
+  prompt: string;
+  onSwitchToChecker: () => void;
+}) {
+  return (
+    <div className="relative mt-10 sm:mt-14">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-16 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-white"
+      />
+
+      <p className="text-center text-[13px] font-medium text-[#080b50] sm:text-[14px]">
+        {prompt}
+      </p>
+
+      <button
+        type="button"
+        onClick={onSwitchToChecker}
+        className="mt-4 min-h-[48px] w-full rounded-lg bg-[#080b50] px-6 py-3 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 sm:mx-auto sm:block sm:max-w-[420px] sm:text-[15px]"
+      >
+        Check My Eligibility
+      </button>
+    </div>
+  );
+}
+
+// RequirementsPanel
+interface PanelProps {
+  onSwitchToChecker: () => void;
+}
+
+function RequirementsPanel({ onSwitchToChecker }: PanelProps) {
+  return (
+    <div className="py-3 text-[#080b50] sm:py-6">
+      <h2 className="mb-5 text-[20px] font-semibold leading-tight text-[#080b50] sm:mb-6 sm:text-[26px]">
+        Computer Science Admission Requirements
+      </h2>
+
+      {/* Undergraduate Entry */}
+      <section className="mb-6 sm:mb-8">
+        <h3 className="mb-2 text-[18px] font-bold text-[#080b50] sm:text-[17px]">
+          Undergraduate Entry
+        </h3>
+        <p className="text-[14px] leading-relaxed text-[#060740] sm:text-[15px]">
+          To study Computer Science, applicants must satisfy the general university
+          admission requirements <strong>and the programme-specific subject requirements.</strong>
+        </p>
+      </section>
+
+      {/* WASSCE (SSCE) Applicants */}
+      <section className="mb-6 sm:mb-8">
+        <h3 className="mb-2 text-[15px] font-bold text-[#080b50] sm:text-[17px]">
+          WASSCE (SSCE) Applicants
+        </h3>
+        <p className="mb-3 text-[14px] leading-relaxed text-[#060740] sm:text-[15px]">
+          You must have:
+        </p>
+
+        <div className="mb-3">
+          <p className="text-[14px] font-semibold text-[#080b50] sm:text-[14.5px]">
+            Three Core Subjects
+          </p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13.5px] leading-relaxed text-[#060740] sm:text-[14px]">
+            <li>English Language — <strong>A1 – C6</strong></li>
+            <li>Core Mathematics — <strong>A1 – C6</strong></li>
+            <li>Integrated Science — <strong>A1 – C6</strong></li>
+          </ul>
+        </div>
+
+        <div className="mb-3">
+          <p className="text-[14px] font-semibold text-[#080b50] sm:text-[14.5px]">
+            Three Relevant Electives
+          </p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13px] leading-relaxed text-[#060740] sm:text-[14px]">
+            <li>Elective Mathematics — <strong>A1 – C6</strong></li>
+            <li>
+              Plus at least two of:
+              <ul className="mt-0.5 list-[circle] space-y-0.5 pl-5 text-[#080b50]">
+                <li>Physics</li>
+                <li>Chemistry</li>
+                <li>Biology</li>
+                <li>Elective ICT or</li>
+                <li>Any relevant General Science-related elective.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+        <p className="text-[13.5px] font-semibold text-[#080b50] sm:text-[14.5px]">
+          In short:{" "}
+          <span className="font-normal text-[#060740]">
+            3 Core Subjects + Elective Mathematics + 2 relevant electives
+          </span>
+        </p>
+      </section>
+
+      {/* Other Entry Routes */}
+      <section className="mb-6 sm:mb-8">
+        <h3 className="mb-2 text-[15px] font-bold text-[#080b50] sm:text-[17px]">
+          Other Entry Routes
+        </h3>
+        <p className="text-[13.5px] leading-relaxed text-[#060740] sm:text-[15px]">
+          Applicants with qualifications other than WASSCE may also be considered,
+          subject to the University&apos;s admission regulations and the specific
+          requirements of the programme.
+        </p>
+      </section>
+
+      {/* Mature Applicants */}
+      <section className="mb-6 sm:mb-8">
+        <h4 className="mb-1.5 text-[14px] font-bold text-[#080b50] sm:text-[15.5px]">
+          Mature Applicants
+        </h4>
+        <p className="text-[13.5px] leading-relaxed text-[#060740] sm:text-[15px]">
+          Applicants who meet the University&apos;s mature-entry age requirement may
+          apply through the mature admissions route and may be required to pass an
+          entrance examination and/or interview. UENR and other Ghanaian
+          universities commonly use <strong>25 years</strong> as the mature-entry
+          threshold.
+        </p>
+      </section>
+
+      {/* Diploma / HND Holders */}
+      <section className="mb-6 sm:mb-8">
+        <h4 className="mb-1.5 text-[14px] font-bold text-[#080b50] sm:text-[15.5px]">
+          Diploma / HND Holders
+        </h4>
+        <p className="text-[13.5px] leading-relaxed text-[#060740] sm:text-[15px]">
+          Applicants with relevant diplomas or HND qualifications may be considered
+          for admission or advanced placement, subject to assessment of their
+          qualification and the University&apos;s regulations. UENR explicitly
+          recognizes professional/technical qualifications as an entry route.
+        </p>
+      </section>
+
+      {/* International Applicants */}
+      <section className="mb-6 sm:mb-8">
+        <h4 className="mb-1.5 text-[14px] font-bold text-[#080b50] sm:text-[15.5px]">
+          International Applicants
+        </h4>
+        <p className="text-[13.5px] leading-relaxed text-[#060740] sm:text-[15px]">
+          Applicants with foreign qualifications may be considered where their
+          qualifications are recognized as equivalent to the relevant Ghanaian
+          qualifications. Foreign certificates may require evaluation by the
+          appropriate national authority.
+        </p>
+      </section>
+
+      <InfoBanner />
+
+      <PanelCta
+        prompt="Need to know if your results qualify?"
+        onSwitchToChecker={onSwitchToChecker}
+      />
+    </div>
+  );
+}
+
+// FaqsPanel — one-at-a-time accordion
+interface FaqItem {
+  q: string;
+  a: React.ReactNode[];
+}
+
+const FAQS: FaqItem[] = [
   {
-    q: "What if I haven't received my WASSCE results yet?",
-    a: "You can still use the checker with your mock or predicted grades to get a sense of where you stand, but your final application will be assessed on your official results.",
+    q: "What grades do I need to study Computer Science?",
+    a: [
+      <>For WASSCE applicants, you must obtain <strong>A1–C6</strong> in:</>,
+      <ul key="core" className="list-disc space-y-0.5 pl-5">
+        <li>English Language</li>
+        <li>Core Mathematics</li>
+        <li>Integrated Science</li>
+        <li>Elective Mathematics</li>
+      </ul>,
+      <>You must also obtain <strong>A1–C6</strong> in at least two of the following relevant electives:</>,
+      <ul key="electives" className="list-disc space-y-0.5 pl-5">
+        <li>Physics</li>
+        <li>Chemistry</li>
+        <li>Biology</li>
+        <li>Elective ICT</li>
+      </ul>,
+      <>
+        In short: <strong>3 Core Subjects + Elective Mathematics + 2 Relevant Electives.</strong>
+      </>,
+    ],
   },
   {
-    q: "Does the checker store or submit my grades anywhere?",
-    a: "No — everything runs in your browser. Nothing is saved or sent anywhere unless you choose to apply.",
+    q: "Is Elective Mathematics compulsory?",
+    a: [
+      <>
+        Yes. Elective Mathematics is a required elective for admission to the
+        Computer Science programme.
+      </>,
+      <>
+        You must obtain <strong>A1–C6</strong> in Elective Mathematics.
+      </>,
+    ],
   },
   {
-    q: "I'm close but not eligible. What can I do?",
-    a: "Reach out to the admissions office — resit options and alternative entry routes are handled case by case.",
+    q: "How many elective subjects do I need?",
+    a: [
+      <>You need at least <strong>three qualifying electives</strong>:</>,
+      <ul key="list" className="list-disc space-y-0.5 pl-5">
+        <li>Elective Mathematics</li>
+        <li>Two additional relevant electives</li>
+      </ul>,
+      <>
+        The two additional electives may be selected from Physics, Chemistry,
+        Biology, or Elective ICT, provided you obtain <strong>A1–C6</strong>.
+      </>,
+    ],
   },
   {
-    q: "How is the 'Potential CS Areas' match calculated?",
-    a: "It's a rough guide based on your Mathematics, ICT, and science grades, weighted toward the subjects most relevant to each area. It's meant to help you explore, not to limit your choices.",
+    q: "Which grades are considered qualifying grades?",
+    a: [
+      <>The qualifying WASSCE grades are:</>,
+      <>
+        <strong>A1, B2, B3, C4, C5, and C6.</strong>
+      </>,
+      <>
+        Grades D7, E8, and F9 do not meet the minimum grade requirement for the
+        required subjects.
+      </>,
+    ],
+  },
+  {
+    q: "Can I qualify if I did not take Elective Mathematics?",
+    a: [
+      <>
+        No. Elective Mathematics is a compulsory subject requirement for the
+        Computer Science programme under the stated WASSCE criteria.
+      </>,
+    ],
+  },
+  {
+    q: "Can Elective ICT count as one of my relevant electives?",
+    a: [
+      <>
+        Yes. Elective ICT may count as one of the two additional relevant
+        electives, alongside Physics, Chemistry, or Biology, provided the required
+        grade is obtained.
+      </>,
+    ],
+  },
+  {
+    q: "What if I have more than two qualifying relevant electives?",
+    a: [
+      <>
+        That&apos;s fine. You only need at least two additional qualifying
+        electives besides Elective Mathematics.
+      </>,
+      <>
+        For example, if you have qualifying grades in Physics, Chemistry, Biology,
+        and Elective ICT, you meet the elective-subject requirement as long as
+        Elective Mathematics also meets the requirement.
+      </>,
+    ],
+  },
+  {
+    q: "If I meet the requirements, am I automatically admitted?",
+    a: [
+      <>
+        No. Meeting the minimum academic requirements means that you are eligible
+        to apply, but it does <strong>not</strong> guarantee admission.
+      </>,
+      <>
+        Final admission is subject to the university&apos;s admission process,
+        available spaces, and any other applicable admission conditions.
+      </>,
+    ],
   },
 ];
 
-function FaqsPanel() {
+function FaqsPanel({ onSwitchToChecker }: PanelProps) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggle = (i: number) => {
+    setOpenIndex((prev) => (prev === i ? null : i));
+  };
+
   return (
-    <div className="py-3 sm:py-6">
-      <h3 className="mb-4 text-[17px] font-bold text-[#080b50] sm:mb-6 sm:text-[22px]">
-        Frequently Asked Questions
-      </h3>
-      <div className="space-y-3 sm:space-y-6">
-        {FAQS.map((f) => (
-          <div key={f.q} className="rounded-lg border border-gray-100 bg-gray-50 p-3 sm:p-5">
-            <p className="text-[14px] font-semibold text-[#080b50] sm:text-[17px]">{f.q}</p>
-            <p className="mt-2 text-[13px] leading-relaxed text-gray-600 sm:text-[15px]">{f.a}</p>
-          </div>
-        ))}
-      </div>
+    <div className="py-3 text-[#080b50] sm:py-6">
+      <h2 className="mb-5 text-[20px] font-extrabold leading-tight text-[#080b50] sm:mb-6 sm:text-[26px]">
+        Got questions about studying Computer Science?
+      </h2>
+
+      <ul className="space-y-2.5 sm:space-y-3">
+        {FAQS.map((item, i) => {
+          const isOpen = openIndex === i;
+          const panelId = `faq-panel-${i}`;
+          const buttonId = `faq-button-${i}`;
+
+          return (
+            <li
+              key={i}
+              className="overflow-hidden rounded-lg bg-[#D9EEFF] transition-colors"
+            >
+              <button
+                id={buttonId}
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                onClick={() => toggle(i)}
+                className="flex min-h-[52px] w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-[#CDE8FF] sm:gap-4 sm:px-4 sm:py-3.5"
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/70 text-[12px] font-bold text-[#080b50] sm:h-8 sm:w-8 sm:text-[13px]"
+                >
+                  {i + 1}
+                </span>
+
+                <span className="flex-1 text-[13.5px] font-semibold leading-snug text-[#080b50] sm:text-[15px]">
+                  {item.q}
+                </span>
+
+                <span aria-hidden="true" className="shrink-0 text-[#080b50]">
+                  {isOpen ? (
+                    <XCircle className="h-5 w-5 sm:h-[22px] sm:w-[22px]" strokeWidth={2} />
+                  ) : (
+                    <PlusCircle className="h-5 w-5 sm:h-[22px] sm:w-[22px]" strokeWidth={2} />
+                  )}
+                </span>
+              </button>
+
+              <div
+                id={panelId}
+                role="region"
+                aria-labelledby={buttonId}
+                className={[
+                  "grid transition-all duration-300 ease-out",
+                  isOpen
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0",
+                ].join(" ")}
+              >
+                <div className="overflow-hidden">
+                  <div className="space-y-2.5 px-3 pb-4 pl-[52px] text-[13px] leading-relaxed text-[#080b50]/90 sm:px-4 sm:pb-5 sm:pl-[64px] sm:text-[14px]">
+                    {item.a.map((para, j) => (
+                      <div key={j}>{para}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <InfoBanner />
+
+      <PanelCta
+        prompt="Still unsure about your eligibility?"
+        onSwitchToChecker={onSwitchToChecker}
+      />
     </div>
+  );
+}
+
+// ===========================================================================
+// ApplyLink
+// ===========================================================================
+
+interface ApplyLinkProps {
+  label?: string;
+  className?: string;
+}
+
+function ApplyLink({ label = "Apply Now", className = "" }: ApplyLinkProps) {
+  return (
+    <a
+      href={APPLY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      className={[
+        "flex min-h-[48px] items-center justify-center rounded-lg bg-[#080b50] py-3 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90 sm:py-3.5 sm:text-[16px]",
+        className,
+      ].join(" ")}
+    >
+      {label}
+    </a>
   );
 }
 
@@ -686,6 +994,14 @@ export default function CheckEligibility() {
     }
   }
 
+  function handleSwitchToChecker() {
+    setTab("checker");
+    setStep({ kind: "form" });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    });
+  }
+
   return (
     <section className="w-full overflow-x-hidden bg-white py-6 text-[#080b50] sm:py-12">
       {showIncompleteModal && (
@@ -702,8 +1018,12 @@ export default function CheckEligibility() {
         <div className="rounded-lg bg-white p-0 sm:p-6">
           <TabBar tab={tab} setTab={setTab} />
 
-          {tab === "requirements" && <RequirementsPanel />}
-          {tab === "faqs" && <FaqsPanel />}
+          {tab === "requirements" && (
+            <RequirementsPanel onSwitchToChecker={handleSwitchToChecker} />
+          )}
+          {tab === "faqs" && (
+            <FaqsPanel onSwitchToChecker={handleSwitchToChecker} />
+          )}
 
           {/* --------------------------- STEP: FORM --------------------------- */}
           {tab === "checker" && step.kind === "form" && (
@@ -744,7 +1064,6 @@ export default function CheckEligibility() {
                 1 — Core Subjects (Required)
               </h3>
               <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2 sm:gap-4">
-                {/* No `required` — no red asterisk on core subjects */}
                 <GradeSelect
                   label="English Language"
                   value={form.english}
@@ -767,7 +1086,6 @@ export default function CheckEligibility() {
                 2 — Elective Subjects
               </h3>
               <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-                {/* KEEP `required` — only red asterisk on the form */}
                 <GradeSelect
                   anchorId="field-math-elective"
                   label="Mathematics (Elective)"
@@ -914,12 +1232,7 @@ export default function CheckEligibility() {
                       >
                         Explore Potential CS Areas
                       </button>
-                      <a
-                        href="#apply"
-                        className="min-h-[48px] flex-1 rounded-lg bg-[#080b50] py-3 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90 sm:py-3.5 sm:text-[16px]"
-                      >
-                        Apply Now
-                      </a>
+                      <ApplyLink className="flex-1" />
                     </>
                   )}
                 </div>
@@ -979,12 +1292,7 @@ export default function CheckEligibility() {
                 >
                   Explore Career Opportunities
                 </button>
-                <a
-                  href="#apply"
-                  className="min-h-[48px] flex-1 rounded-xl bg-[#080b50] px-4 py-3 text-center text-[14px] font-bold text-white shadow-md transition-opacity hover:opacity-90 sm:px-6 sm:py-4 sm:text-[15px]"
-                >
-                  Apply Now
-                </a>
+                <ApplyLink className="flex-1 rounded-xl px-4 py-3 sm:px-6 sm:py-4 sm:text-[15px]" />
               </div>
             </div>
           )}
@@ -1030,12 +1338,7 @@ export default function CheckEligibility() {
                 </div>
               </div>
 
-              <a
-                href="#apply"
-                className="mt-10 block min-h-[48px] w-full rounded-xl bg-[#080b50] py-3.5 text-center text-[14px] font-bold text-white shadow-md transition-opacity hover:opacity-90 sm:mt-14 sm:py-4 sm:text-[16px]"
-              >
-                Apply Now
-              </a>
+              <ApplyLink className="mt-10 w-full rounded-xl py-3.5 sm:mt-14 sm:py-4 sm:text-[16px]" />
             </div>
           )}
         </div>
