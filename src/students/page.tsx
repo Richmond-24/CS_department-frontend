@@ -329,7 +329,7 @@ export default function StudentResources() {
             </p>
 
             <a
-              href="#"
+              href="#resources"
               className="
                 mt-8
                 inline-flex
@@ -351,7 +351,7 @@ export default function StudentResources() {
                 hover:shadow-xl
               "
             >
-              Request Letter
+              Back to Resources
 
               <ArrowRight
                 size={17}

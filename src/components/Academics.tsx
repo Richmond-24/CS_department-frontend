@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 
 interface Programme {
@@ -37,6 +39,35 @@ const programmes: Programme[] = [
 
 const Programmes: React.FC = () => {
   const [activeCard, setActiveCard] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          // Optional: Reset to false if you want it to re-animate every time it scrolls into view
+          setIsVisible(false);
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px"
+      }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   const handleCardClick = (programme: Programme) => {
     setActiveCard(programme.id);
@@ -49,16 +80,43 @@ const Programmes: React.FC = () => {
   };
 
   return (
-    <section className="relative w-full overflow-hidden bg-white px-5 py-16 sm:px-8 md:px-12 lg:px-16 xl:px-20">
-      <div className="pointer-events-none absolute left-[-120px] top-20 h-64 w-64 rounded-full bg-[#0B9BD7]/5 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-[-100px] right-[-100px] h-72 w-72 rounded-full bg-[#203B82]/5 blur-3xl" />
+    <section 
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-white px-5 py-16 sm:px-8 md:px-12 lg:px-16 xl:px-20 transition-all duration-1000 ease-out"
+      style={{
+        fontFamily: "Lufga, sans-serif",
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(40px)',
+      }}
+    >
+      {/* Animated Background Blobs */}
+      <div 
+        className="pointer-events-none absolute left-[-120px] top-20 h-64 w-64 rounded-full bg-[#0B9BD7]/5 blur-3xl transition-all duration-1000 delay-100"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'scale(1)' : 'scale(0.8)',
+        }}
+      />
+      <div 
+        className="pointer-events-none absolute bottom-[-100px] right-[-100px] h-72 w-72 rounded-full bg-[#203B82]/5 blur-3xl transition-all duration-1000 delay-200"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'scale(1)' : 'scale(0.8)',
+        }}
+      />
 
       <div className="relative mx-auto max-w-[1180px]">
         <div className="mb-10 text-center sm:mb-12">
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#0B9BD7]" />
+          {/* Animated Accent Line */}
+          <div 
+            className="mx-auto mb-4 h-1 rounded-full bg-[#0B9BD7] transition-all duration-800 ease-out"
+            style={{
+              width: isVisible ? '40px' : '0px',
+            }}
+          />
 
           <h2
-            className="
+            className={`
               text-[27px]
               font-bold
               leading-tight
@@ -66,13 +124,18 @@ const Programmes: React.FC = () => {
               text-[#080B50]
               sm:text-[32px]
               md:text-[36px]
-            "
+              transition-all duration-700 ease-out delay-100
+            `}
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+            }}
           >
             Explore Our Programmes
           </h2>
 
           <p
-            className="
+            className={`
               mx-auto
               mt-3
               max-w-[650px]
@@ -83,7 +146,12 @@ const Programmes: React.FC = () => {
               sm:text-[15px]
               md:text-[16px]
               md:leading-7
-            "
+              transition-all duration-700 ease-out delay-200
+            `}
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+            }}
           >
             Discover programmes designed to equip you with the knowledge
             <br className="hidden sm:block" />
@@ -112,7 +180,7 @@ const Programmes: React.FC = () => {
                   border-[#0B9BD7]
                   text-left
                   transition-all
-                  duration-300
+                  duration-500
                   ease-out
                   focus:outline-none
                   focus-visible:ring-4
@@ -124,7 +192,11 @@ const Programmes: React.FC = () => {
                   }
                 `}
                 style={{
-                  animationDelay: `${index * 80}ms`,
+                  transitionDelay: `${300 + (index * 100)}ms`,
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible 
+                    ? (isActive ? 'scale(0.985)' : 'translateY(0)') 
+                    : 'translateY(30px)',
                 }}
               >
                 <span

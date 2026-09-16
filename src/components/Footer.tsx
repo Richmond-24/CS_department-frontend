@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import {
   Phone,
   MessageCircle,
@@ -8,18 +11,59 @@ import {
   Send,
 } from "lucide-react";
 
+// --- Custom Hook for Scroll Animations ---
+const useScrollReveal = (threshold = 0.1) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          // Optional: Stop observing once visible to save resources
+          // observer.disconnect(); 
+        }
+      },
+      { threshold }
+    );
+
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [threshold]);
+
+  return { ref, isVisible };
+};
+
 const socialLinks = [
-  { label: "Facebook", icon: Camera, href: "#" },
-  { label: "Instagram", icon: Camera, href: "#" },
-  { label: "LinkedIn", icon: BriefcaseBusiness, href: "#" },
-  { label: "X", icon: Send, href: "#" },
+  { label: "Facebook", icon: Camera, href: "https://www.facebook.com" },
+  { label: "Instagram", icon: Camera, href: "https://www.instagram.com" },
+  { label: "LinkedIn", icon: BriefcaseBusiness, href: "https://www.linkedin.com" },
+  { label: "X", icon: Send, href: "https://x.com" },
 ];
 
 const Footer = () => {
+  // Hook to trigger animation when footer enters viewport
+  const { ref, isVisible } = useScrollReveal(0.1);
+
   return (
-    <footer className="relative overflow-hidden bg-[#07145c] font-[var(--font-body,Inter,sans-serif)] text-white">
+    <footer 
+      ref={ref}
+      className="relative overflow-hidden bg-[#07145c] font-[var(--font-body,Inter,sans-serif)] text-white transition-all duration-1000 ease-out"
+    >
+      {/* Background Image & Overlays */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
+        }`}
         style={{ backgroundImage: "url('/u.webp')" }}
       />
       <div className="absolute inset-0 bg-[#07145c]/65" />
@@ -27,7 +71,14 @@ const Footer = () => {
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-12 lg:py-14">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-10">
-          <div>
+          
+          {/* Column 1: Contact Info */}
+          <div 
+            className={`transform transition-all duration-700 ease-out ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+            }`}
+            style={{ transitionDelay: '100ms' }}
+          >
             <h3 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-[16px] font-bold uppercase leading-5 tracking-wide text-white">
               Computer Science
               <br />
@@ -111,39 +162,69 @@ const Footer = () => {
             </div>
           </div>
 
-          <div>
+          {/* Column 2: Explore */}
+          <div 
+            className={`transform transition-all duration-700 ease-out ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+            }`}
+            style={{ transitionDelay: '200ms' }}
+          >
             <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold">
               Explore
             </h2>
 
             <ul className="mt-5 space-y-3 text-[15px] font-medium text-white/90">
-              {['About', 'Programmes', 'Research', 'News & Events', 'Careers'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="transition hover:text-cyan-300">
-                    {item}
+              {[
+                { label: 'About', href: '#about' },
+                { label: 'Programmes', href: '#programmes' },
+                { label: 'Research', href: '#research' },
+                { label: 'News & Events', href: '#news' },
+                { label: 'Careers', href: '#careers' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <a href={item.href} className="transition hover:text-cyan-300">
+                    {item.label}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div>
+          {/* Column 3: Students */}
+          <div 
+            className={`transform transition-all duration-700 ease-out ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+            }`}
+            style={{ transitionDelay: '300ms' }}
+          >
             <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold">
               Students
             </h2>
 
             <ul className="mt-5 space-y-3 text-[15px] font-medium text-white/90">
-              {['Student Portal', 'Resources', 'Academic Information', 'Eligibility Checker', 'FAQs'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="transition hover:text-cyan-300">
-                    {item}
+              {[
+                { label: 'Student Portal', href: '#home' },
+                { label: 'Resources', href: '#resources' },
+                { label: 'Academic Information', href: '#programmes' },
+                { label: 'Eligibility Checker', href: '#eligibility-checker' },
+                { label: 'FAQs', href: '#contact' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <a href={item.href} className="transition hover:text-cyan-300">
+                    {item.label}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div>
+          {/* Column 4: Newsletter & Socials */}
+          <div 
+            className={`transform transition-all duration-700 ease-out ${
+              isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+            }`}
+            style={{ transitionDelay: '400ms' }}
+          >
             <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold leading-tight">
               Subscribe to Newsletter
             </h2>
@@ -184,15 +265,15 @@ const Footer = () => {
               </p>
 
               <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
-                <a href="#" className="transition hover:text-white">
+                <a href="#about" className="transition hover:text-white">
                   Privacy Policy
                 </a>
                 <span>|</span>
-                <a href="#" className="transition hover:text-white">
+                <a href="#resources" className="transition hover:text-white">
                   Terms
                 </a>
                 <span>|</span>
-                <a href="#" className="transition hover:text-white">
+                <a href="#home" className="transition hover:text-white">
                   University Website
                 </a>
               </div>

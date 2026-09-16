@@ -164,7 +164,7 @@ export default function Programmes() {
                   </p>
 
                   <a
-                    href="#"
+                    href={index === 0 ? '#undergraduate' : '#postgraduate'}
                     className="mt-8 inline-flex items-center gap-3 rounded-md bg-[#079bd3] px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:bg-[#068abb] hover:shadow-lg"
                   >
                     {programme.button}
@@ -275,7 +275,7 @@ export default function Programmes() {
 
             <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
               <a
-                href="#"
+                href="#contact"
                 className="inline-flex items-center justify-center gap-3 rounded-md bg-[#079bd3] px-7 py-4 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[#068abb]"
               >
                 Apply Online
@@ -283,7 +283,7 @@ export default function Programmes() {
               </a>
 
               <a
-                href="#"
+                href="#contact"
                 className="inline-flex items-center justify-center gap-3 rounded-md border border-white/50 bg-white/5 px-7 py-4 text-sm font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white hover:text-[#080d4f]"
               >
                 Contact Us

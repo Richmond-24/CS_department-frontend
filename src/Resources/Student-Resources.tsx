@@ -138,7 +138,7 @@ export default function StudentResources() {
 
               {/* Download */}
               <a
-                href="#"
+                href="#resources/handbook"
                 className="
                   flex
                   items-center

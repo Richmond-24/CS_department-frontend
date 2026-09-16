@@ -1,3 +1,4 @@
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -40,6 +41,7 @@ const Statistics = () => {
   // Detect when the statistics section enters the screen
   const sectionRef = useRef<HTMLElement | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -48,13 +50,22 @@ const Statistics = () => {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasStarted) {
-          setHasStarted(true);
-          observer.disconnect();
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          
+          if (!hasStarted) {
+            setHasStarted(true);
+            // We don't disconnect here anymore so we can toggle visibility on scroll out/in
+            // But we only want the number animation to run once
+          }
+        } else {
+          // Optional: Reset visibility when scrolling away to re-animate fade
+          setIsVisible(false);
         }
       },
       {
-        threshold: 0.25,
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px"
       }
     );
 
@@ -109,13 +120,26 @@ const Statistics = () => {
   }, [hasStarted]);
 
   return (
-    <main className="min-h-screen bg-white px-5 py-12 text-[#080b50] sm:px-6 md:px-10 lg:px-12 lg:py-16">
+    <main 
+      className="min-h-screen bg-white px-5 py-12 text-[#080b50] sm:px-6 md:px-10 lg:px-12 lg:py-16 transition-all duration-1000 ease-out"
+      style={{ 
+        fontFamily: "Lufga, sans-serif",
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(40px)',
+      }}
+    >
       <section
         ref={sectionRef}
         className="mx-auto max-w-[1200px]"
       >
         {/* PAGE HEADER */}
-        <div className="mb-8 text-center md:mb-10">
+        <div 
+          className="mb-8 text-center md:mb-10 transition-all duration-700 ease-out delay-100"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+          }}
+        >
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#203b82]">
             Computer Science and Informatics Department
           </p>
@@ -138,15 +162,25 @@ const Statistics = () => {
             return (
               <article
                 key={stat.label}
-                className="group relative overflow-hidden rounded-[24px] border border-slate-200 bg-[#e6f7ff] p-5 transition-all duration-300 hover:-translate-y-1 active:-translate-y-1 hover:border-[#c5eaf7] hover:shadow-[0_14px_35px_rgba(8,11,80,0.08)] sm:p-6 md:min-h-[220px]"
+                className="group relative overflow-hidden rounded-[24px] border border-slate-200 bg-[#e6f7ff] p-5 transition-all duration-500 hover:-translate-y-1 active:-translate-y-1 hover:border-[#c5eaf7] hover:shadow-[0_14px_35px_rgba(8,11,80,0.08)] sm:p-6 md:min-h-[220px]"
+                style={{
+                  transitionDelay: `${300 + (index * 150)}ms`,
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(30px) scale(0.95)',
+                }}
               >
                 {/* TOP ROW */}
                 <div className="flex items-start justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#080b50] shadow-sm">
+                  <div 
+                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#080b50] shadow-sm transition-transform duration-500 group-hover:rotate-6"
+                    style={{
+                      transitionDelay: `${400 + (index * 150)}ms`,
+                    }}
+                  >
                     <Icon size={22} strokeWidth={2.3} />
                   </div>
 
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/70 text-[#203b82] transition-transform duration-300 group-hover:rotate-45 active:rotate-45">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/70 text-[#203b82] transition-all duration-300 group-hover:rotate-45 group-hover:bg-[#203b82] group-hover:text-white active:rotate-45">
                     <ArrowUpRight size={16} />
                   </div>
                 </div>
@@ -173,7 +207,7 @@ const Statistics = () => {
                 </div>
 
                 {/* DECORATIVE LINE */}
-                <div className="absolute bottom-0 left-0 h-1 w-0 bg-[#203b82] transition-all duration-300 group-hover:w-full active:w-full" />
+                <div className="absolute bottom-0 left-0 h-1 w-0 bg-[#203b82] transition-all duration-500 group-hover:w-full active:w-full" />
               </article>
             );
           })}

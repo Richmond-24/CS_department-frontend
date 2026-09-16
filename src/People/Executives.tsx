@@ -758,7 +758,7 @@ export default function StudentExecutivesPage() {
             </a>
 
             <a
-              href="#"
+              href="#people/executives"
               className="
                 inline-flex
                 items-center

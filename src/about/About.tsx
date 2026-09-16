@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useRef } from "react";
 import Image from "../components/Image";
 import {
   Compass,
@@ -11,6 +12,36 @@ import {
   BookOpen,
   FlaskConical,
 } from "lucide-react";
+
+// --- Custom Hook for Scroll Animations ---
+const useScrollReveal = (threshold = 0.1) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold }
+    );
+
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [threshold]);
+
+  return { ref, isVisible };
+};
 
 const galleryImages = [
   { src: "/img1.webp", alt: "Computer science student", className: "col-start-1 row-start-1" },
@@ -92,25 +123,68 @@ const historyMilestones = [
 ];
 
 export default function About() {
+  // Hooks for different sections
+  const collageReveal = useScrollReveal(0.1);
+  const welcomeReveal = useScrollReveal(0.2);
+  const visionReveal = useScrollReveal(0.2);
+  const overviewReveal = useScrollReveal(0.1);
+  const valuesReveal = useScrollReveal(0.1);
+  const historyReveal = useScrollReveal(0.1);
+  const closingReveal = useScrollReveal(0.2);
+
   return (
     <main className="min-h-screen bg-white">
 
       {/* =====================================================
           TOP IMAGE COLLAGE
       ====================================================== */}
-      <section className="px-5 pt-8 sm:px-8 md:px-12 lg:px-16">
+      <section 
+        ref={collageReveal.ref}
+        className={`px-5 pt-8 transition-all duration-1000 ease-out sm:px-8 md:px-12 lg:px-16 ${
+          collageReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+        }`}
+      >
         <div className="mx-auto max-w-4xl">
-          <div className="grid h-[320px] grid-cols-3 grid-rows-2 gap-2 sm:h-[420px] sm:gap-3">
-            {galleryImages.map((image) => (
+          
+          {/* MOBILE VIEW: Only first 2 images, side-by-side, Increased Height to h-80 */}
+          <div className="grid grid-cols-2 gap-2 sm:hidden">
+            {galleryImages.slice(0, 2).map((image, index) => (
               <div
-                key={image.src}
-                className={`relative overflow-hidden rounded-lg ${image.className}`}
+                key={`mobile-${image.src}`}
+                className="relative h-80 w-full overflow-hidden rounded-lg"
               >
                 <Image
                   src={image.src}
                   alt={image.alt}
                   fill
-                  priority
+                  priority={index === 0}
+                  sizes="50vw"
+                  className="object-cover"
+                />
+                
+                {/* Added Overlay and Text to BOTH images */}
+                <div className="absolute inset-0 flex items-end bg-[#080d4f]/80 p-4">
+                  <p className="text-sm font-bold leading-tight text-white">
+                    Technology is the future
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP/TABLET VIEW: Original Mosaic Grid */}
+          <div className="hidden h-[320px] grid-cols-3 grid-rows-2 gap-2 sm:grid sm:h-[420px] sm:gap-3">
+            {galleryImages.map((image, index) => (
+              <div
+                key={image.src}
+                className={`relative overflow-hidden rounded-lg ${image.className}`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  priority={index < 2}
                   sizes="(max-width: 768px) 33vw, 300px"
                   className="object-cover transition-transform duration-700 hover:scale-105"
                 />
@@ -129,13 +203,19 @@ export default function About() {
               </div>
             ))}
           </div>
+
         </div>
       </section>
 
       {/* =====================================================
           WELCOME TO THE DEPARTMENT
       ====================================================== */}
-      <section className="px-5 py-10 sm:px-8 sm:py-14 md:px-12">
+      <section 
+        ref={welcomeReveal.ref}
+        className={`px-5 py-10 transition-all duration-1000 ease-out sm:px-8 sm:py-14 md:px-12 ${
+          welcomeReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+        }`}
+      >
         <div className="mx-auto max-w-4xl">
           <div className="group overflow-hidden rounded-xl bg-[#e8f8fc] p-3 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-lg sm:p-4">
             <div className="grid items-center gap-4 sm:grid-cols-[145px_1fr] md:grid-cols-[170px_1fr]">
@@ -176,7 +256,12 @@ export default function About() {
       {/* =====================================================
           VISION & MISSION
       ====================================================== */}
-      <section className="px-5 pb-12 sm:px-8 sm:pb-16 md:px-12">
+      <section 
+        ref={visionReveal.ref}
+        className={`px-5 pb-12 transition-all duration-1000 ease-out sm:px-8 sm:pb-16 md:px-12 ${
+          visionReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+        }`}
+      >
         <div className="mx-auto max-w-4xl">
           <div className="grid gap-4 sm:grid-cols-2">
 
@@ -230,7 +315,12 @@ export default function About() {
 {/* =====================================================
     DEPARTMENT OVERVIEW
 ====================================================== */}
-<section className="border-y border-[#079bd3]/30 bg-white px-5 py-12 sm:px-8 sm:py-16 md:px-12 lg:py-20">
+<section 
+  ref={overviewReveal.ref}
+  className={`border-y border-[#079bd3]/30 bg-white px-5 py-12 transition-all duration-1000 ease-out sm:px-8 sm:py-16 md:px-12 lg:py-20 ${
+    overviewReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+  }`}
+>
   <div className="mx-auto max-w-6xl">
 
     {/* SECTION HEADER */}
@@ -252,11 +342,11 @@ export default function About() {
 
     {/* OVERVIEW CARDS */}
     <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 md:mt-12">
-      {overviewItems.map((item) => {
+      {overviewItems.map((item, index) => {
         return (
           <article
             key={item.title}
-            className="
+            className={`
               group
               relative
               min-h-[155px]
@@ -270,7 +360,7 @@ export default function About() {
               px-6
               py-6
               transition-all
-              duration-300
+              duration-500
               hover:-translate-y-1
               hover:bg-[#f8fdff]
               hover:border-[#079bd3]
@@ -281,7 +371,9 @@ export default function About() {
               md:min-h-[180px]
               md:px-8
               md:py-8
-            "
+              ${overviewReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}
+            `}
+            style={{ transitionDelay: `${index * 150}ms` }}
           >
 
             {/* TITLE */}
@@ -354,7 +446,12 @@ export default function About() {
 {/* =====================================================
     CORE VALUES
 ====================================================== */}
-<section className="bg-[#e8f8fc] px-5 py-16 sm:px-8 sm:py-20 md:px-12 lg:py-24">
+<section 
+  ref={valuesReveal.ref}
+  className={`bg-[#e8f8fc] px-5 py-16 transition-all duration-1000 ease-out sm:px-8 sm:py-20 md:px-12 lg:py-24 ${
+    valuesReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+  }`}
+>
   <div className="mx-auto max-w-6xl">
 
     {/* SECTION HEADER */}
@@ -370,33 +467,35 @@ export default function About() {
 
     {/* FIRST 3 VALUES */}
     <div className="mx-auto mt-10 grid gap-3 sm:grid-cols-3 sm:gap-4 md:mt-12">
-      {coreValues.slice(0, 3).map((value) => {
+      {coreValues.slice(0, 3).map((value, index) => {
         const Icon = value.icon;
 
         return (
           <article
             key={value.title}
-            className="
+            className={`
               group
               relative
               min-h-[180px]
               overflow-hidden
               rounded-xl
               bg-gradient-to-br
-              from-[#10347d]
-              to-[#087fba]
+              from-[#0c2a66] 
+              to-[#079bd3]
               p-6
               text-white
-              shadow-sm
+              shadow-md
               transition-all
               duration-500
               hover:-translate-y-2
-              hover:shadow-[0_18px_35px_rgba(8,11,80,0.18)]
+              hover:shadow-[0_18px_35px_rgba(8,11,80,0.25)]
               sm:min-h-[200px]
               sm:p-7
               md:min-h-[215px]
               md:p-8
-            "
+              ${valuesReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}
+            `}
+            style={{ transitionDelay: `${index * 150}ms` }}
           >
             {/* Decorative circle */}
             <div
@@ -407,26 +506,27 @@ export default function About() {
                 h-28
                 w-28
                 rounded-full
-                bg-white/5
+                bg-white/10
                 transition-transform
                 duration-500
                 group-hover:scale-150
               "
             />
 
-            <div className="relative">
+            <div className="relative z-10">
 
               {/* ICON */}
               <div
                 className="
                   flex
-                  h-10
-                  w-10
+                  h-12
+                  w-12
                   items-center
                   justify-center
                   rounded-full
-                  bg-[#079bd3]
+                  bg-white/20
                   text-white
+                  backdrop-blur-sm
                   transition-all
                   duration-300
                   group-hover:scale-110
@@ -434,7 +534,7 @@ export default function About() {
                   group-hover:text-[#079bd3]
                 "
               >
-                <Icon size={19} strokeWidth={2.2} />
+                <Icon size={20} strokeWidth={2.2} />
               </div>
 
               {/* TITLE */}
@@ -444,6 +544,8 @@ export default function About() {
                   text-lg
                   font-bold
                   tracking-[-0.02em]
+                  text-white
+                  drop-shadow-sm
                   sm:text-xl
                   md:text-[22px]
                 "
@@ -457,8 +559,9 @@ export default function About() {
                   mt-3
                   max-w-[300px]
                   text-sm
+                  font-medium
                   leading-6
-                  text-white/90
+                  text-white
                   sm:text-[15px]
                   sm:leading-6
                 "
@@ -475,7 +578,7 @@ export default function About() {
                 left-0
                 h-1
                 w-0
-                bg-[#079bd3]
+                bg-white
                 transition-all
                 duration-500
                 group-hover:w-full
@@ -488,33 +591,35 @@ export default function About() {
 
     {/* LAST 2 VALUES */}
     <div className="mx-auto mt-3 grid gap-3 sm:grid-cols-2 sm:gap-4">
-      {coreValues.slice(3).map((value) => {
+      {coreValues.slice(3).map((value, index) => {
         const Icon = value.icon;
 
         return (
           <article
             key={value.title}
-            className="
+            className={`
               group
               relative
               min-h-[180px]
               overflow-hidden
               rounded-xl
               bg-gradient-to-br
-              from-[#10347d]
-              to-[#087fba]
+              from-[#0c2a66]
+              to-[#079bd3]
               p-6
               text-white
-              shadow-sm
+              shadow-md
               transition-all
               duration-500
               hover:-translate-y-2
-              hover:shadow-[0_18px_35px_rgba(8,11,80,0.18)]
+              hover:shadow-[0_18px_35px_rgba(8,11,80,0.25)]
               sm:min-h-[200px]
               sm:p-7
               md:min-h-[215px]
               md:p-8
-            "
+              ${valuesReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}
+            `}
+            style={{ transitionDelay: `${(index + 3) * 150}ms` }}
           >
             {/* Decorative circle */}
             <div
@@ -525,26 +630,27 @@ export default function About() {
                 h-28
                 w-28
                 rounded-full
-                bg-white/5
+                bg-white/10
                 transition-transform
                 duration-500
                 group-hover:scale-150
               "
             />
 
-            <div className="relative">
+            <div className="relative z-10">
 
               {/* ICON */}
               <div
                 className="
                   flex
-                  h-10
-                  w-10
+                  h-12
+                  w-12
                   items-center
                   justify-center
                   rounded-full
-                  bg-[#079bd3]
+                  bg-white/20
                   text-white
+                  backdrop-blur-sm
                   transition-all
                   duration-300
                   group-hover:scale-110
@@ -552,7 +658,7 @@ export default function About() {
                   group-hover:text-[#079bd3]
                 "
               >
-                <Icon size={19} strokeWidth={2.2} />
+                <Icon size={20} strokeWidth={2.2} />
               </div>
 
               {/* TITLE */}
@@ -562,6 +668,8 @@ export default function About() {
                   text-lg
                   font-bold
                   tracking-[-0.02em]
+                  text-white
+                  drop-shadow-sm
                   sm:text-xl
                   md:text-[22px]
                 "
@@ -575,8 +683,9 @@ export default function About() {
                   mt-3
                   max-w-xl
                   text-sm
+                  font-medium
                   leading-6
-                  text-white/90
+                  text-white
                   sm:text-[15px]
                   sm:leading-6
                 "
@@ -593,7 +702,7 @@ export default function About() {
                 left-0
                 h-1
                 w-0
-                bg-[#079bd3]
+                bg-white
                 transition-all
                 duration-500
                 group-hover:w-full
@@ -611,7 +720,12 @@ export default function About() {
 {/* =====================================================
     HISTORY
 ====================================================== */}
-<section className="bg-white px-5 py-16 sm:px-8 sm:py-20 md:px-12 lg:py-24">
+<section 
+  ref={historyReveal.ref}
+  className={`bg-white px-5 py-16 transition-all duration-1000 ease-out sm:px-8 sm:py-20 md:px-12 lg:py-24 ${
+    historyReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+  }`}
+>
   <div className="mx-auto max-w-6xl">
 
     {/* SECTION HEADER */}
@@ -636,7 +750,10 @@ export default function About() {
       {historyMilestones.map((milestone, index) => (
         <div
           key={milestone.year}
-          className="group relative flex gap-5 pb-12 sm:gap-8 sm:pb-14"
+          className={`group relative flex gap-5 pb-12 transition-all duration-700 ease-out sm:gap-8 sm:pb-14 ${
+            historyReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+          }`}
+          style={{ transitionDelay: `${index * 200}ms` }}
         >
 
           {/* TIMELINE LINE */}
@@ -728,7 +845,12 @@ export default function About() {
 {/* =====================================================
     CLOSING SECTION
 ====================================================== */}
-<section className="bg-[#080d4f] px-5 py-14 sm:px-8 sm:py-16 md:px-12 lg:py-20">
+<section 
+  ref={closingReveal.ref}
+  className={`bg-[#080d4f] px-5 py-14 transition-all duration-1000 ease-out sm:px-8 sm:py-16 md:px-12 lg:py-20 ${
+    closingReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+  }`}
+>
   <div className="mx-auto max-w-6xl">
 
     <div className="grid overflow-hidden rounded-[24px] bg-[#0b155d] md:grid-cols-2">

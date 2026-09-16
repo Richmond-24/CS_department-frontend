@@ -525,18 +525,6 @@ const Header: React.FC<HeaderProps> = ({
 
             <div className="flex h-[82px] items-center justify-between border-b border-white/10 px-5">
 
-              <div>
-
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#55c8f2]">
-                  CSI Department
-                </p>
-
-                <p className="mt-1 text-sm font-semibold text-white/80">
-                  Navigation
-                </p>
-
-              </div>
-
 
               <button
                 type="button"

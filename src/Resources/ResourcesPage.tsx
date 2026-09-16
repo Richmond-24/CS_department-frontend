@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -11,6 +14,38 @@ import DepartmentalCalendar from "./DepartmentalCalendar";
 import StudentHandbook from "./StudentHandbook";
 import ListCourses from "./ListCourses";
 import InternshipPage from "./Internship";
+
+/* ============================================================
+   CUSTOM HOOK FOR SCROLL ANIMATIONS
+============================================================ */
+const useScrollReveal = (threshold = 0.1) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold }
+    );
+
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [threshold]);
+
+  return { ref, isVisible };
+};
 
 /* ============================================================
    RESOURCE LINKS
@@ -56,43 +91,49 @@ const resources = [
 ];
 
 /* ============================================================
-   RESOURCE CARD
+   RESOURCE CARD (ORIGINAL DESIGN RESTORED + ANIMATION)
 ============================================================ */
 
 function ResourceCard({
   resource,
+  index,
 }: {
   resource: (typeof resources)[number];
+  index: number;
 }) {
   const Icon = resource.icon;
+  const cardReveal = useScrollReveal(0.2);
 
   return (
     <article
-      className="
+      ref={cardReveal.ref}
+      className={`
         group
         flex
-        min-h-[235px]
+        min-h-[280px]
         flex-col
         items-center
-        rounded-lg
+        rounded-xl
         bg-[#e3f6fc]
-        px-6
-        py-7
+        px-8
+        py-9
         text-center
         shadow-sm
         transition-all
-        duration-300
+        duration-700
+        ease-out
         hover:-translate-y-1
         hover:shadow-lg
-      "
+        ${cardReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}
+      `}
+      style={{ transitionDelay: `${index * 150}ms` }}
     >
-      {/* Icon */}
-
+      {/* Icon - Original Square Style */}
       <div
         className="
           flex
-          h-12
-          w-12
+          h-14
+          w-14
           items-center
           justify-center
           rounded-md
@@ -104,55 +145,49 @@ function ResourceCard({
           group-hover:text-white
         "
       >
-        <Icon size={22} strokeWidth={1.8} />
+        <Icon size={26} strokeWidth={1.8} />
       </div>
 
-      {/* Title */}
-
+      {/* Title - Original Style */}
       <h3
         className="
-          mt-4
-          text-base
+          mt-5
+          text-lg
           font-bold
           leading-tight
           text-[#080d4f]
-          sm:text-lg
+          sm:text-xl
         "
       >
         {resource.title}
       </h3>
 
-      {/* Description */}
-
+      {/* Description - Original Style */}
       <p
         className="
-          mt-2
-          max-w-[270px]
-          text-[11px]
-          leading-[1.6]
+          mt-3
+          max-w-[300px]
+          text-sm
+          leading-[1.7]
           text-[#526078]
-          sm:text-xs
         "
       >
         {resource.description}
       </p>
 
-      {/* ======================================================
-          REAL PAGE LINK
-      ======================================================= */}
-
+      {/* Button - Original Pill Style */}
       <a
         href={resource.href}
         className="
           mt-auto
           inline-flex
           items-center
-          gap-1.5
+          gap-2
           rounded-md
           bg-[#079bd3]
-          px-4
-          py-2
-          text-[10px]
+          px-5
+          py-2.5
+          text-xs
           font-bold
           text-white
           shadow-sm
@@ -161,13 +196,13 @@ function ResourceCard({
           hover:-translate-y-0.5
           hover:bg-[#080d4f]
           hover:shadow-md
-          sm:text-[11px]
+          sm:text-sm
         "
       >
         {resource.button}
 
         <ArrowRight
-          size={12}
+          size={14}
           className="
             transition-transform
             duration-300
@@ -184,6 +219,11 @@ function ResourceCard({
 ============================================================ */
 
 export default function ResourcesPage({ currentPath = '/resources' }: ResourcesPageProps) {
+  // Hooks for section reveals
+  const heroReveal = useScrollReveal(0.1);
+  const gridHeaderReveal = useScrollReveal(0.2);
+  const ctaReveal = useScrollReveal(0.2);
+
   switch (currentPath) {
     case '/resources/student-resources':
       return <StudentResourcesPage />;
@@ -203,7 +243,12 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
               HERO
           ====================================================== */}
 
-          <section className="relative min-h-[360px] overflow-hidden sm:min-h-[430px] lg:min-h-[500px]">
+          <section 
+            ref={heroReveal.ref}
+            className={`relative min-h-[450px] overflow-hidden sm:min-h-[550px] lg:min-h-[650px] transition-all duration-1000 ease-out ${
+              heroReveal.isVisible ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
             <img
               src="/resources-hero.jpg"
               alt="Departmental resources"
@@ -232,20 +277,22 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
                 z-10
                 mx-auto
                 flex
-                min-h-[360px]
+                min-h-[450px]
                 max-w-7xl
                 items-center
                 px-6
-                py-20
-                sm:min-h-[430px]
+                py-24
+                sm:min-h-[550px]
                 sm:px-10
-                lg:min-h-[500px]
+                lg:min-h-[650px]
                 lg:px-12
               "
             >
-              <div className="max-w-3xl">
-                <div className="mb-5 flex items-center gap-3">
-                  <span className="h-[3px] w-12 rounded-full bg-[#079bd3]" />
+              <div className={`max-w-3xl transition-all duration-1000 delay-300 ease-out ${
+                heroReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+              }`}>
+                <div className="mb-6 flex items-center gap-3">
+                  <span className="h-[3px] w-14 rounded-full bg-[#079bd3]" />
 
                   <span
                     className="
@@ -262,13 +309,13 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
 
                 <h1
                   className="
-                    text-4xl
+                    text-5xl
                     font-bold
                     leading-[1.05]
                     text-white
-                    sm:text-5xl
-                    md:text-6xl
-                    lg:text-7xl
+                    sm:text-6xl
+                    md:text-7xl
+                    lg:text-8xl
                   "
                 >
                   Departmental
@@ -279,13 +326,13 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
 
                 <p
                   className="
-                    mt-6
+                    mt-8
                     max-w-2xl
-                    text-base
-                    leading-7
+                    text-lg
+                    leading-8
                     text-white/80
-                    sm:text-lg
-                    sm:leading-8
+                    sm:text-xl
+                    sm:leading-9
                   "
                 >
                   Access the essential resources, academic information, guides,
@@ -304,16 +351,23 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
             className="
               bg-white
               px-6
-              py-20
+              py-24
               sm:px-10
-              sm:py-24
+              sm:py-32
               md:px-16
               lg:px-12
-              lg:py-28
+              lg:py-36
             "
           >
             <div className="mx-auto max-w-6xl">
-              <div className="mx-auto max-w-2xl text-center">
+              
+              {/* Section Header */}
+              <div 
+                ref={gridHeaderReveal.ref}
+                className={`mx-auto max-w-2xl text-center mb-16 transition-all duration-1000 ease-out ${
+                  gridHeaderReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+                }`}
+              >
                 <p
                   className="
                     text-sm
@@ -328,26 +382,26 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
 
                 <h2
                   className="
-                    mt-3
-                    text-3xl
+                    mt-4
+                    text-4xl
                     font-bold
                     text-[#080d4f]
-                    sm:text-4xl
-                    md:text-5xl
+                    sm:text-5xl
+                    md:text-6xl
                   "
                 >
                   Student Resources
                 </h2>
 
-                <div className="mx-auto mt-5 h-1 w-14 rounded-full bg-[#079bd3]" />
+                <div className="mx-auto mt-6 h-1.5 w-16 rounded-full bg-[#079bd3]" />
 
                 <p
                   className="
-                    mt-5
-                    text-base
-                    leading-7
+                    mt-6
+                    text-lg
+                    leading-8
                     text-[#526078]
-                    sm:text-lg
+                    sm:text-xl
                   "
                 >
                   Find important academic resources and information to help you
@@ -357,17 +411,17 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
 
               <div
                 className="
-                  mt-14
                   grid
                   grid-cols-1
-                  gap-6
+                  gap-8
                   sm:grid-cols-2
                 "
               >
-                {resources.map((resource) => (
+                {resources.map((resource, index) => (
                   <ResourceCard
                     key={resource.title}
                     resource={resource}
+                    index={index}
                   />
                 ))}
               </div>
@@ -379,13 +433,16 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
           ====================================================== */}
 
           <section
-            className="
+            ref={ctaReveal.ref}
+            className={`
               relative
-              min-h-[430px]
+              min-h-[500px]
               overflow-hidden
-              sm:min-h-[480px]
-              lg:min-h-[520px]
-            "
+              sm:min-h-[600px]
+              lg:min-h-[700px]
+              transition-all duration-1000 ease-out
+              ${ctaReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}
+            `}
           >
             <img
               src="/internship-cta.jpg"
@@ -417,14 +474,14 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
                 relative
                 z-10
                 flex
-                min-h-[430px]
+                min-h-[500px]
                 items-center
                 justify-center
                 px-6
-                py-20
+                py-24
                 text-center
-                sm:min-h-[480px]
-                lg:min-h-[520px]
+                sm:min-h-[600px]
+                lg:min-h-[700px]
               "
             >
               <div className="max-w-3xl">
@@ -432,8 +489,8 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
                   className="
                     mx-auto
                     flex
-                    h-14
-                    w-14
+                    h-16
+                    w-16
                     items-center
                     justify-center
                     rounded-full
@@ -442,12 +499,12 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
                     backdrop-blur-sm
                   "
                 >
-                  <BriefcaseBusiness size={25} />
+                  <BriefcaseBusiness size={28} />
                 </div>
 
                 <p
                   className="
-                    mt-6
+                    mt-8
                     text-sm
                     font-bold
                     uppercase
@@ -460,13 +517,13 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
 
                 <h2
                   className="
-                    mt-3
-                    text-3xl
+                    mt-4
+                    text-4xl
                     font-bold
                     leading-tight
                     text-white
-                    sm:text-4xl
-                    md:text-5xl
+                    sm:text-5xl
+                    md:text-6xl
                   "
                 >
                   Need an Internship
@@ -478,13 +535,13 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
                 <p
                   className="
                     mx-auto
-                    mt-5
+                    mt-6
                     max-w-2xl
-                    text-base
-                    leading-7
+                    text-lg
+                    leading-8
                     text-white/80
-                    sm:text-lg
-                    sm:leading-8
+                    sm:text-xl
+                    sm:leading-9
                   "
                 >
                   Get the support you need to begin your internship journey.
@@ -495,15 +552,15 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
                 <a
                   href="#resources/internship"
                   className="
-                    mt-8
+                    mt-10
                     inline-flex
                     items-center
                     gap-3
                     rounded-md
                     bg-[#079bd3]
-                    px-7
-                    py-3.5
-                    text-sm
+                    px-8
+                    py-4
+                    text-base
                     font-bold
                     text-white
                     shadow-lg
@@ -517,7 +574,7 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
                 >
                   Request Letter
 
-                  <ArrowRight size={17} />
+                  <ArrowRight size={18} />
                 </a>
               </div>
             </div>
