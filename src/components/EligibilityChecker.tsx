@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {ArrowLeft, Check, X, XCircle, PlusCircle, AlertTriangle, AlertCircle, ChevronDown} from "lucide-react";
 
@@ -35,10 +36,36 @@ function gradePoints(grade: Grade): number {
   return GRADE_INFO[grade].points;
 }
 
-function isQualifyingGrade(grade: Grade): boolean {
-  if (!grade) return false;
+// ===========================================================================
+// ADMISSION RULES — single source of truth for thresholds.
+// Change a number here and the logic updates. (Copy in the FAQs / Requirements
+// panels reads from the label constants below.)
+// ===========================================================================
+
+/** Worst rank accepted for the BSc (6 = C6). */
+const BSC_MAX_RANK = 6;
+/** Worst rank accepted for the Diploma electives (8 = E8). */
+const DIPLOMA_MAX_RANK = 8;
+/** Diploma relaxes Elective Mathematics too. Set to false to keep it at C6. */
+const DIPLOMA_RELAXES_ELECTIVE_MATH = true;
+
+const BSC_RANGE_LABEL = "A1 – C6";
+const DIPLOMA_RANGE_LABEL = "A1 – E8";
+const BSC_MIN_LABEL = "C6";
+const DIPLOMA_MIN_LABEL = "E8";
+
+type SubjectKind = "core" | "electiveMath" | "elective";
+type SubjectStatus = "bsc" | "diploma" | "fail";
+type Outcome = "bsc" | "diploma" | "none";
+
+function subjectStatus(grade: Grade, kind: SubjectKind): SubjectStatus {
+  if (!grade) return "fail";
   const { rank } = GRADE_INFO[grade];
-  return rank >= 1 && rank <= 6;
+  if (rank <= BSC_MAX_RANK) return "bsc";
+  const canRelax =
+    kind === "elective" || (kind === "electiveMath" && DIPLOMA_RELAXES_ELECTIVE_MATH);
+  if (canRelax && rank <= DIPLOMA_MAX_RANK) return "diploma"; // D7, E8
+  return "fail"; // cores never relax
 }
 
 // ELIGIBILITY LOGIC
@@ -73,19 +100,58 @@ const EMPTY_FORM: EligibilityFormData = {
   customElective2Grade: "",
 };
 
+// Names that already have a dedicated field. Typing one of these into a custom
+// slot would double-count the subject, so custom entries matching them are ignored.
+const RESERVED_SUBJECT_NAMES = new Set([
+  "physics",
+  "chemistry",
+  "biology",
+  "ict",
+  "elective ict",
+  "mathematics",
+  "maths",
+  "math",
+  "elective mathematics",
+  "elective maths",
+  "elective math",
+  "mathematics (elective)",
+  "core mathematics",
+  "core maths",
+  "core math",
+  "mathematics (core)",
+  "english",
+  "english language",
+  "integrated science",
+]);
+
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** Returns a user-facing problem with a custom elective slot, or null. */
+function customElectiveIssue(name: string, grade: Grade): string | null {
+  const trimmed = name.trim();
+  if (trimmed && grade === "") return "Select a grade for this subject, or clear the name.";
+  if (!trimmed && grade !== "") return "Enter the subject name, or clear the grade.";
+  if (trimmed && RESERVED_SUBJECT_NAMES.has(normalizeName(trimmed))) {
+    return "This subject already has its own field above. Enter a different subject.";
+  }
+  return null;
+}
+
 interface SubjectCheck {
   id: string;
   label: string;
   grade: Grade;
   required: boolean;
-  passed: boolean;
+  status: SubjectStatus;
   isEvaluatedInTop6?: boolean;
 }
 
 interface EligibilityResult {
+  outcome: Outcome;
+  /** True for BSc or Diploma. Kept so existing "eligible" checks still work. */
   eligible: boolean;
-  missingCore: boolean;
-  missingMathElective: boolean;
   qualifyingElectiveCount: number;
   totalElectivesEntered: number;
   hasElectiveMath: boolean;
@@ -93,47 +159,51 @@ interface EligibilityResult {
   isIncomplete: boolean;
 }
 
+function makeSubject(
+  id: string,
+  label: string,
+  grade: Grade,
+  kind: SubjectKind,
+  required: boolean,
+): SubjectCheck {
+  return { id, label, grade, required, status: subjectStatus(grade, kind) };
+}
+
 function checkEligibility(form: EligibilityFormData): EligibilityResult {
   const coreSubjects: SubjectCheck[] = [
-    { id: "english", label: "English Language", grade: form.english, required: true, passed: isQualifyingGrade(form.english) },
-    { id: "math-core", label: "Mathematics (Core)", grade: form.mathCore, required: true, passed: isQualifyingGrade(form.mathCore) },
-    { id: "integrated-science", label: "Integrated Science", grade: form.integratedScience, required: true, passed: isQualifyingGrade(form.integratedScience) },
+    makeSubject("english", "English Language", form.english, "core", true),
+    makeSubject("math-core", "Mathematics (Core)", form.mathCore, "core", true),
+    makeSubject("integrated-science", "Integrated Science", form.integratedScience, "core", true),
   ];
 
-  const mathElective: SubjectCheck = {
-    id: "math-elective",
-    label: "Mathematics (Elective)",
-    grade: form.mathElective,
-    required: true,
-    passed: isQualifyingGrade(form.mathElective),
-  };
+  const mathElective = makeSubject(
+    "math-elective",
+    "Mathematics (Elective)",
+    form.mathElective,
+    "electiveMath",
+    true,
+  );
 
   const rawOtherElectives: SubjectCheck[] = [
-    { id: "physics", label: "Physics", grade: form.physics, required: false, passed: isQualifyingGrade(form.physics) },
-    { id: "chemistry", label: "Chemistry", grade: form.chemistry, required: false, passed: isQualifyingGrade(form.chemistry) },
-    { id: "biology", label: "Biology", grade: form.biology, required: false, passed: isQualifyingGrade(form.biology) },
-    { id: "elective-ict", label: "Elective ICT", grade: form.electiveIct, required: false, passed: isQualifyingGrade(form.electiveIct) },
+    makeSubject("physics", "Physics", form.physics, "elective", false),
+    makeSubject("chemistry", "Chemistry", form.chemistry, "elective", false),
+    makeSubject("biology", "Biology", form.biology, "elective", false),
+    makeSubject("elective-ict", "Elective ICT", form.electiveIct, "elective", false),
   ];
 
-  if (form.customElective1Name.trim() && form.customElective1Grade !== "") {
-    rawOtherElectives.push({
-      id: "custom-1",
-      label: form.customElective1Name.trim(),
-      grade: form.customElective1Grade,
-      required: false,
-      passed: isQualifyingGrade(form.customElective1Grade),
-    });
-  }
-
-  if (form.customElective2Name.trim() && form.customElective2Grade !== "") {
-    rawOtherElectives.push({
-      id: "custom-2",
-      label: form.customElective2Name.trim(),
-      grade: form.customElective2Grade,
-      required: false,
-      passed: isQualifyingGrade(form.customElective2Grade),
-    });
-  }
+  // Custom electives: skip partial entries and anything that duplicates a named field
+  // (or the other custom slot).
+  const seenCustom = new Set<string>();
+  const addCustom = (id: string, name: string, grade: Grade) => {
+    const trimmed = name.trim();
+    if (!trimmed || grade === "") return;
+    const key = normalizeName(trimmed);
+    if (RESERVED_SUBJECT_NAMES.has(key) || seenCustom.has(key)) return;
+    seenCustom.add(key);
+    rawOtherElectives.push(makeSubject(id, trimmed, grade, "elective", false));
+  };
+  addCustom("custom-1", form.customElective1Name, form.customElective1Grade);
+  addCustom("custom-2", form.customElective2Name, form.customElective2Grade);
 
   const filledOtherElectives = rawOtherElectives.filter((s) => s.grade !== "");
   const hasElectiveMath = form.mathElective !== "";
@@ -141,17 +211,25 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
 
   const isIncomplete = totalElectivesEntered < 3 || !hasElectiveMath;
 
+  // Ordering by rank is monotonic for both tracks, so the best two electives
+  // are the right ones to test for BSc and for Diploma.
   const top2Electives = [...filledOtherElectives]
     .sort((a, b) => getGradeRank(a.grade) - getGradeRank(b.grade))
     .slice(0, 2);
   const top2Ids = new Set(top2Electives.map((s) => s.id));
 
-  const missingCore = coreSubjects.some((s) => !s.passed);
-  const missingMathElective = !mathElective.passed;
-  const qualifyingTop2Count = top2Electives.filter((s) => s.passed).length;
+  const coreOk = coreSubjects.every((s) => s.status === "bsc");
+  const bscMath = mathElective.status === "bsc";
+  const diplomaMath = mathElective.status !== "fail";
+  const top2Bsc = top2Electives.filter((s) => s.status === "bsc").length;
+  const top2Diploma = top2Electives.filter((s) => s.status !== "fail").length;
 
-  const eligible =
-    !isIncomplete && !missingCore && !missingMathElective && qualifyingTop2Count >= 2;
+  const outcome: Outcome =
+    !isIncomplete && coreOk && bscMath && top2Bsc >= 2
+      ? "bsc"
+      : !isIncomplete && coreOk && diplomaMath && top2Diploma >= 2
+        ? "diploma"
+        : "none";
 
   const subjects: SubjectCheck[] = [
     ...coreSubjects.map((s) => ({ ...s, isEvaluatedInTop6: true })),
@@ -163,10 +241,9 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
   ];
 
   return {
-    eligible,
-    missingCore,
-    missingMathElective,
-    qualifyingElectiveCount: qualifyingTop2Count,
+    outcome,
+    eligible: outcome !== "none",
+    qualifyingElectiveCount: outcome === "bsc" ? top2Bsc : top2Diploma,
     totalElectivesEntered,
     hasElectiveMath,
     subjects,
@@ -174,7 +251,22 @@ function checkEligibility(form: EligibilityFormData): EligibilityResult {
   };
 }
 
-// CS AREA MATCHING
+// ===========================================================================
+// CS AREA MATCHING — 7 areas, boosted math-driven formulas + requirement caps
+// ===========================================================================
+//
+// Design:
+//   1. Non-linear scoring (boosted = points²) — strong grades dominate.
+//   2. Math strength = best of Elective/Core Math + 30% bonus from the other.
+//   3. Piecewise remap: all-C6 → 35% (Fair floor), all-A1 → 100%, and profiles
+//      weaker than all-C6 spread across 0–35% instead of flattening at 35%.
+//      This keeps BSc scores identical while letting Diploma-level profiles
+//      (D7/E8 electives) still rank areas against each other.
+//   4. Requirement caps — if a student misses the minimum bar for an area's
+//      essential subjects (e.g. weak math for AI/ML), the score is capped at
+//      a low ceiling.
+//   5. A subject that wasn't taken (Physics) is not scored as 0; a proxy from
+//      the student's other science electives is used instead.
 
 interface AreaMatch {
   key: string;
@@ -199,7 +291,8 @@ function toArea(
   description: string,
   careers: string[],
 ): AreaMatch {
-  const fitPercent = Math.round(rawPercent);
+  const clamped = Math.max(0, Math.min(100, rawPercent));
+  const fitPercent = Math.round(clamped);
   return {
     key,
     name,
@@ -210,41 +303,247 @@ function toArea(
   };
 }
 
+// --- Boosted scoring helpers ---------------------------------------------
+
+function boosted(points: number): number {
+  return points * points;
+}
+
+function mathStrength(mathE: number, mathCore: number): number {
+  const best = Math.max(mathE, mathCore);
+  const other = Math.min(mathE, mathCore);
+  return boosted(best) + 0.3 * boosted(other);
+}
+
+const RAW_ZERO = 1 / 64; // all-E8 profile
+const RAW_FLOOR = 9 / 64; // all-C6 profile
+const RAW_CEIL = 1.0;
+const TARGET_FLOOR = 0.35;
+const TARGET_CEIL = 1.0;
+
+function remap(raw: number): number {
+  if (raw < RAW_FLOOR) {
+    const t = Math.max(0, (raw - RAW_ZERO) / (RAW_FLOOR - RAW_ZERO));
+    return t * TARGET_FLOOR * 100; // 0–35%
+  }
+  const t = (Math.min(RAW_CEIL, raw) - RAW_FLOOR) / (RAW_CEIL - RAW_FLOOR);
+  return (TARGET_FLOOR + t * (TARGET_CEIL - TARGET_FLOOR)) * 100;
+}
+
+// --- Requirement caps ----------------------------------------------------
+//
+// Points reference: A1=8, B2=7, B3=6, C4=5, C5=4, C6=3, D7=2, E8=1, F9=0.
+// "mathE: 5" means the student must have at least C4 in Elective Math.
+
+interface StudentPoints {
+  mathE: number;
+  mathCore: number;
+  ict: number;
+  physics: number;
+  english: number;
+}
+
+interface AreaRequirement {
+  minimums: Partial<Record<keyof StudentPoints, number>>;
+  capIfBelow: number;
+}
+
+const AREA_REQUIREMENTS: Record<string, AreaRequirement> = {
+  "ai-ml": {
+    minimums: { mathE: 5, mathCore: 5 },   // C4 or better in both maths
+    capIfBelow: 22,
+  },
+  "data-science": {
+    minimums: { mathE: 5, mathCore: 5 },   // C4 or better in both maths
+    capIfBelow: 22,
+  },
+  "cybersecurity": {
+    minimums: { mathE: 4, ict: 4 },        // C5 or better in math-e & ICT
+    capIfBelow: 28,
+  },
+  "software-engineering": {
+    minimums: { mathE: 4, ict: 5 },        // C5 in math-e AND C4 in ICT
+    capIfBelow: 30,
+  },
+  "systems-networking": {
+    minimums: { ict: 4 },                  // C5 in ICT
+    capIfBelow: 35,
+  },
+  "information-systems": {
+    minimums: {},                          // soft — no cap
+    capIfBelow: 100,
+  },
+  "software-product": {
+    minimums: {},                          // soft — no cap
+    capIfBelow: 100,
+  },
+};
+
+function applyRequirementCap(
+  fitPercent: number,
+  points: StudentPoints,
+  req: AreaRequirement,
+): number {
+  for (const key of Object.keys(req.minimums) as (keyof StudentPoints)[]) {
+    const min = req.minimums[key];
+    if (min !== undefined && points[key] < min) {
+      return Math.min(fitPercent, req.capIfBelow);
+    }
+  }
+  return fitPercent;
+}
+
 function matchCsAreas(form: EligibilityFormData): AreaMatch[] {
-  const mathE = gradePoints(form.mathElective);
-  const ict = gradePoints(form.electiveIct);
-  const physics = gradePoints(form.physics);
+  const english = gradePoints(form.english);
   const mathCore = gradePoints(form.mathCore);
+  const mathE = gradePoints(form.mathElective);
   const chemistry = gradePoints(form.chemistry);
+  const biology = gradePoints(form.biology);
+  const ict = gradePoints(form.electiveIct);
 
-  const MAX = 8;
+  // Physics is optional. If it wasn't taken, don't score it as 0 — use the
+  // student's best other science elective as a stand-in.
+  const physics =
+    form.physics !== "" ? gradePoints(form.physics) : Math.max(chemistry, biology);
 
-  const softwareEngineering = ((mathE * 2 + ict * 2 + mathCore) / (MAX * 5)) * 100;
-  const cybersecurity = ((ict * 2 + mathE + mathCore) / (MAX * 4)) * 100;
-  const aiAndMl =
-    ((mathE * 2 + physics + mathCore + (chemistry > 0 ? chemistry * 0.5 : 0)) / (MAX * 4.5)) * 100;
+  const MAX_BOOST = boosted(8);
+  const MAX_MATH = mathStrength(8, 8);
+  const mStrength = mathStrength(mathE, mathCore);
+  const sciTiebreak = Math.max(boosted(biology), boosted(chemistry));
+
+  // --- Raw fits (before caps) -------------------------------------------
+  const aiMlRaw =
+    (mStrength * 5 + boosted(physics) * 3 + boosted(ict) * 1) /
+    (MAX_MATH * 5 + MAX_BOOST * 3 + MAX_BOOST * 1);
+
+  const cybersecurityRaw =
+    (mStrength * 3 + boosted(ict) * 4 + boosted(english) * 1) /
+    (MAX_MATH * 3 + MAX_BOOST * 4 + MAX_BOOST * 1);
+
+  const dataScienceRaw =
+    (mStrength * 6 + boosted(ict) * 2 + sciTiebreak * 2) /
+    (MAX_MATH * 6 + MAX_BOOST * 2 + MAX_BOOST * 2);
+
+  const systemsNetworkingRaw =
+    (boosted(ict) * 4 + boosted(physics) * 3 + mStrength * 2) /
+    (MAX_BOOST * 4 + MAX_BOOST * 3 + MAX_MATH * 2);
+
+  const softwareEngineeringRaw =
+    (boosted(ict) * 3 + mStrength * 3 + boosted(english) * 1) /
+    (MAX_BOOST * 3 + MAX_MATH * 3 + MAX_BOOST * 1);
+
+  // Product & UX leans on communication; IS leans on a balance with some math.
+  // (These used to share one formula, so they always tied.)
+  const softwareProductRaw =
+    (boosted(english) * 4 + boosted(ict) * 3 + mStrength * 1) /
+    (MAX_BOOST * 4 + MAX_BOOST * 3 + MAX_MATH * 1);
+
+  const informationSystemsRaw =
+    (boosted(english) * 3 + boosted(ict) * 3 + mStrength * 2) /
+    (MAX_BOOST * 3 + MAX_BOOST * 3 + MAX_MATH * 2);
+
+  // --- Apply caps based on per-area minimum requirements ----------------
+  const points: StudentPoints = { mathE, mathCore, ict, physics, english };
+
+  const aiMl = applyRequirementCap(remap(aiMlRaw), points, AREA_REQUIREMENTS["ai-ml"]);
+  const cybersecurity = applyRequirementCap(remap(cybersecurityRaw), points, AREA_REQUIREMENTS["cybersecurity"]);
+  const dataScience = applyRequirementCap(remap(dataScienceRaw), points, AREA_REQUIREMENTS["data-science"]);
+  const systemsNetworking = applyRequirementCap(remap(systemsNetworkingRaw), points, AREA_REQUIREMENTS["systems-networking"]);
+  const softwareEngineering = applyRequirementCap(remap(softwareEngineeringRaw), points, AREA_REQUIREMENTS["software-engineering"]);
+  const softwareProduct = applyRequirementCap(remap(softwareProductRaw), points, AREA_REQUIREMENTS["software-product"]);
+  const informationSystems = applyRequirementCap(remap(informationSystemsRaw), points, AREA_REQUIREMENTS["information-systems"]);
 
   const areas: AreaMatch[] = [
     toArea(
-      "software-engineering",
-      "Software Engineering",
-      softwareEngineering,
-      "Your performance in Elective Mathematics and ICT supports this pathway.",
-      ["Software Developer", "Web Developer", "Backend Developer", "Full-Stack Developer", "QA Analyst"],
+      "ai-ml",
+      "Artificial Intelligence & Machine Learning",
+      aiMl,
+      "Your performance in Elective Mathematics, Physics, and ICT supports this mathematically intensive pathway.",
+      [
+        "Machine Learning Engineer",
+        "Data Scientist",
+        "AI Research Scientist",
+        "Computer Vision Engineer",
+        "NLP Specialist",
+      ],
     ),
     toArea(
       "cybersecurity",
-      "Cybersecurity",
+      "Cybersecurity & Cryptography",
       cybersecurity,
-      "Strong ICT and Mathematics grades support work in systems and security.",
-      ["Security Analyst", "Network Administrator", "Penetration Tester", "SOC Analyst", "IT Auditor"],
+      "Strong grades in ICT and Mathematics support work in systems protection, threat detection, and secure communication.",
+      [
+        "Security Analyst",
+        "Penetration Tester (Ethical Hacker)",
+        "Security Engineer",
+        "Forensic Computer Analyst",
+        "Cryptography Engineer",
+      ],
     ),
     toArea(
-      "ai-ml",
-      "Artificial Intelligence & ML",
-      aiAndMl,
-      "Mathematics and science grades support this data- and math-heavy pathway.",
-      ["Machine Learning Engineer", "Data Scientist", "Data Analyst", "AI Research Assistant", "Data Engineer"],
+      "data-science",
+      "Data Science & Analytics",
+      dataScience,
+      "A solid foundation in Mathematics and analytical subjects supports this data-driven pathway.",
+      [
+        "Data Analyst",
+        "Data Engineer",
+        "Business Intelligence Developer",
+        "Quantitative Analyst",
+        "Machine Learning Analyst",
+      ],
+    ),
+    toArea(
+      "systems-networking",
+      "Systems & Networking Infrastructure",
+      systemsNetworking,
+      "Your performance in ICT and Physics supports work designing, deploying, and maintaining computing infrastructure.",
+      [
+        "Network Engineer",
+        "Cloud Engineer",
+        "Systems Administrator",
+        "DevOps Engineer",
+        "Site Reliability Engineer",
+      ],
+    ),
+    toArea(
+      "software-engineering",
+      "Software Engineering & Full-Stack Development",
+      softwareEngineering,
+      "Strong grades in Elective Mathematics and ICT support building and shipping software systems end-to-end.",
+      [
+        "Full-Stack Developer",
+        "Backend Developer",
+        "Mobile Applications Developer",
+        "Front-End Developer",
+        "DevOps Engineer",
+      ],
+    ),
+    toArea(
+      "software-product",
+      "Software Product & UX",
+      softwareProduct,
+      "Strong grades in English and ICT support work at the intersection of technology, users, and product design.",
+      [
+        "UX Designer",
+        "Product Manager",
+        "Technical Writer",
+        "Front-End Developer",
+        "UX Researcher",
+      ],
+    ),
+    toArea(
+      "information-systems",
+      "Information Systems & IT Management",
+      informationSystems,
+      "Balanced performance in ICT and English supports bridging business needs with technology solutions.",
+      [
+        "IT Manager",
+        "Business Analyst",
+        "ERP Specialist",
+        "IT Consultant",
+        "Systems Analyst",
+      ],
     ),
   ];
 
@@ -372,6 +671,16 @@ function TextInput({ value, onChange, label, placeholder }: TextInputProps) {
   );
 }
 
+// FieldNote — inline warning under a form field
+function FieldNote({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <p role="status" className="text-[11.5px] leading-snug text-amber-700">
+      {message}
+    </p>
+  );
+}
+
 // MainHeader
 function MainHeader() {
   return (
@@ -387,28 +696,55 @@ function MainHeader() {
   );
 }
 
-// TabBar
+// TabBar — with tab/tabpanel wiring and arrow-key navigation
+const TAB_ITEMS: { key: Tab; label: string; short: string }[] = [
+  { key: "checker", label: "Eligibility Checker", short: "Checker" },
+  { key: "requirements", label: "Requirements", short: "Requirements" },
+  { key: "faqs", label: "FAQs", short: "FAQs" },
+];
+
 function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
-  const tabs: { key: Tab; label: string; short: string }[] = [
-    { key: "checker", label: "Eligibility Checker", short: "Checker" },
-    { key: "requirements", label: "Requirements", short: "Requirements" },
-    { key: "faqs", label: "FAQs", short: "FAQs" },
-  ];
+  const refs = useRef<Record<Tab, HTMLButtonElement | null>>({
+    checker: null,
+    requirements: null,
+    faqs: null,
+  });
+
+  function onKeyDown(e: ReactKeyboardEvent<HTMLDivElement>) {
+    const idx = TAB_ITEMS.findIndex((t) => t.key === tab);
+    let next = idx;
+    if (e.key === "ArrowRight") next = (idx + 1) % TAB_ITEMS.length;
+    else if (e.key === "ArrowLeft") next = (idx - 1 + TAB_ITEMS.length) % TAB_ITEMS.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = TAB_ITEMS.length - 1;
+    else return;
+    e.preventDefault();
+    const nextKey = TAB_ITEMS[next].key;
+    setTab(nextKey);
+    refs.current[nextKey]?.focus();
+  }
 
   return (
     <div
       role="tablist"
       aria-label="Eligibility sections"
+      onKeyDown={onKeyDown}
       className="mb-6 flex w-full items-stretch gap-1 overflow-x-auto border-b border-gray-200 sm:mb-8"
     >
-      {tabs.map((t) => {
+      {TAB_ITEMS.map((t) => {
         const selected = tab === t.key;
         return (
           <button
             key={t.key}
+            ref={(el) => {
+              refs.current[t.key] = el;
+            }}
+            id={`tab-${t.key}`}
             type="button"
             role="tab"
             aria-selected={selected}
+            aria-controls={`panel-${t.key}`}
+            tabIndex={selected ? 0 : -1}
             onClick={() => setTab(t.key)}
             className={[
               "flex-1 min-w-0 whitespace-nowrap border-b-2 px-2 pb-3 pt-1 text-center",
@@ -440,7 +776,15 @@ function IncompleteModal({
 }) {
   const [progress, setProgress] = useState(0);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+
+  // Keep the latest onClose in a ref so the effects below run once, instead of
+  // re-running (and re-stealing focus) every time the parent re-renders.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     const timer = setTimeout(() => setProgress(100), 50);
@@ -465,17 +809,27 @@ function IncompleteModal({
   }, []);
 
   useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     const focusTimer = setTimeout(() => closeButtonRef.current?.focus(), 0);
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onCloseRef.current();
+        return;
+      }
+      // Minimal focus trap: the dialog has a single focusable control.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        closeButtonRef.current?.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => {
       clearTimeout(focusTimer);
       document.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus?.();
     };
-  }, [onClose]);
+  }, []);
 
   if (typeof document === "undefined") return null;
 
@@ -486,6 +840,7 @@ function IncompleteModal({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -614,7 +969,7 @@ function RequirementsPanel({ onSwitchToChecker }: PanelProps) {
       {/* WASSCE (SSCE) Applicants */}
       <section className="mb-6 sm:mb-8">
         <h3 className="mb-2 text-[15px] font-bold text-[#080b50] sm:text-[17px]">
-          WASSCE (SSCE) Applicants
+          WASSCE (SSCE) Applicants: BSc Computer Science
         </h3>
         <p className="mb-3 text-[14px] leading-relaxed text-[#060740] sm:text-[15px]">
           You must have:
@@ -625,9 +980,9 @@ function RequirementsPanel({ onSwitchToChecker }: PanelProps) {
             Three Core Subjects
           </p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13.5px] leading-relaxed text-[#060740] sm:text-[14px]">
-            <li>English Language — <strong>A1 – C6</strong></li>
-            <li>Core Mathematics — <strong>A1 – C6</strong></li>
-            <li>Integrated Science — <strong>A1 – C6</strong></li>
+            <li>English Language — <strong>{BSC_RANGE_LABEL}</strong></li>
+            <li>Core Mathematics — <strong>{BSC_RANGE_LABEL}</strong></li>
+            <li>Integrated Science — <strong>{BSC_RANGE_LABEL}</strong></li>
           </ul>
         </div>
 
@@ -636,9 +991,9 @@ function RequirementsPanel({ onSwitchToChecker }: PanelProps) {
             Three Relevant Electives
           </p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13px] leading-relaxed text-[#060740] sm:text-[14px]">
-            <li>Elective Mathematics — <strong>A1 – C6</strong></li>
+            <li>Elective Mathematics — <strong>{BSC_RANGE_LABEL}</strong></li>
             <li>
-              Plus at least two of:
+              Plus at least two of (each <strong>{BSC_RANGE_LABEL}</strong>):
               <ul className="mt-0.5 list-[circle] space-y-0.5 pl-5 text-[#080b50]">
                 <li>Physics</li>
                 <li>Chemistry</li>
@@ -655,6 +1010,33 @@ function RequirementsPanel({ onSwitchToChecker }: PanelProps) {
           <span className="font-normal text-[#060740]">
             3 Core Subjects + Elective Mathematics + 2 relevant electives
           </span>
+        </p>
+      </section>
+
+      {/* Diploma */}
+      <section className="mb-6 sm:mb-8">
+        <h3 className="mb-2 text-[15px] font-bold text-[#080b50] sm:text-[17px]">
+          WASSCE (SSCE) Applicants: Diploma in Computer Science
+        </h3>
+        <p className="mb-3 text-[13.5px] leading-relaxed text-[#060740] sm:text-[15px]">
+          The Diploma uses the same subject structure as the BSc, with a more
+          relaxed minimum grade in the electives.
+        </p>
+        <ul className="list-disc space-y-0.5 pl-5 text-[13.5px] leading-relaxed text-[#060740] sm:text-[14px]">
+          <li>
+            English Language, Core Mathematics and Integrated Science — still{" "}
+            <strong>{BSC_RANGE_LABEL}</strong>
+          </li>
+          <li>
+            Elective Mathematics —{" "}
+            <strong>{diplomaMathLabel()}</strong>
+          </li>
+          <li>
+            At least two other relevant electives — <strong>{DIPLOMA_RANGE_LABEL}</strong>
+          </li>
+        </ul>
+        <p className="mt-3 text-[13.5px] leading-relaxed text-[#060740] sm:text-[14px]">
+          A grade of F9 does not qualify for either programme.
         </p>
       </section>
 
@@ -720,24 +1102,28 @@ function RequirementsPanel({ onSwitchToChecker }: PanelProps) {
   );
 }
 
+function diplomaMathLabel(): string {
+  return DIPLOMA_RELAXES_ELECTIVE_MATH ? DIPLOMA_RANGE_LABEL : BSC_RANGE_LABEL;
+}
+
 // FaqsPanel — one-at-a-time accordion
 interface FaqItem {
   q: string;
-  a: React.ReactNode[];
+  a: ReactNode[];
 }
 
 const FAQS: FaqItem[] = [
   {
     q: "What grades do I need to study Computer Science?",
     a: [
-      <>For WASSCE applicants, you must obtain <strong>A1–C6</strong> in:</>,
+      <>For the <strong>BSc</strong>, WASSCE applicants must obtain <strong>{BSC_RANGE_LABEL}</strong> in:</>,
       <ul key="core" className="list-disc space-y-0.5 pl-5">
         <li>English Language</li>
         <li>Core Mathematics</li>
         <li>Integrated Science</li>
         <li>Elective Mathematics</li>
       </ul>,
-      <>You must also obtain <strong>A1–C6</strong> in at least two of the following relevant electives:</>,
+      <>You must also obtain <strong>{BSC_RANGE_LABEL}</strong> in at least two of the following relevant electives:</>,
       <ul key="electives" className="list-disc space-y-0.5 pl-5">
         <li>Physics</li>
         <li>Chemistry</li>
@@ -747,6 +1133,25 @@ const FAQS: FaqItem[] = [
       <>
         In short: <strong>3 Core Subjects + Elective Mathematics + 2 Relevant Electives.</strong>
       </>,
+      <>
+        If your elective grades fall short of the BSc requirement, you may still qualify for the Diploma. See the
+        question about the Diploma below.
+      </>,
+    ],
+  },
+  {
+    q: "Is there a Diploma option if my elective grades are lower?",
+    a: [
+      <>
+        Yes. The Diploma in Computer Science uses the same structure as the BSc
+        (3 core subjects, Elective Mathematics and 2 other relevant electives), but accepts
+        grades down to <strong>{DIPLOMA_MIN_LABEL}</strong> in the electives.
+      </>,
+      <>
+        Your three core subjects (English Language, Core Mathematics and Integrated Science) must
+        still be <strong>{BSC_RANGE_LABEL}</strong>.
+      </>,
+      <>When you apply, make sure you select the Diploma programme.</>,
     ],
   },
   {
@@ -757,7 +1162,14 @@ const FAQS: FaqItem[] = [
         Computer Science programme.
       </>,
       <>
-        You must obtain <strong>A1–C6</strong> in Elective Mathematics.
+        You must obtain <strong>{BSC_RANGE_LABEL}</strong> for the BSc
+        {DIPLOMA_RELAXES_ELECTIVE_MATH ? (
+          <>
+            , or <strong>{DIPLOMA_RANGE_LABEL}</strong> for the Diploma.
+          </>
+        ) : (
+          <>.</>
+        )}
       </>,
     ],
   },
@@ -771,21 +1183,22 @@ const FAQS: FaqItem[] = [
       </ul>,
       <>
         The two additional electives may be selected from Physics, Chemistry,
-        Biology, or Elective ICT, provided you obtain <strong>A1–C6</strong>.
+        Biology, or Elective ICT. They need <strong>{BSC_RANGE_LABEL}</strong> for the BSc or{" "}
+        <strong>{DIPLOMA_RANGE_LABEL}</strong> for the Diploma.
       </>,
     ],
   },
   {
     q: "Which grades are considered qualifying grades?",
     a: [
-      <>The qualifying WASSCE grades are:</>,
       <>
-        <strong>A1, B2, B3, C4, C5, and C6.</strong>
+        For the <strong>BSc</strong>: <strong>A1, B2, B3, C4, C5 and C6.</strong>
       </>,
       <>
-        Grades D7, E8, and F9 do not meet the minimum grade requirement for the
-        required subjects.
+        For the <strong>Diploma</strong>, the electives may also be <strong>D7 or E8</strong>. Core subjects must
+        still be C6 or better.
       </>,
+      <>F9 does not qualify for either programme.</>,
     ],
   },
   {
@@ -793,7 +1206,7 @@ const FAQS: FaqItem[] = [
     a: [
       <>
         No. Elective Mathematics is a compulsory subject requirement for the
-        Computer Science programme under the stated WASSCE criteria.
+        Computer Science programmes under the stated WASSCE criteria.
       </>,
     ],
   },
@@ -950,6 +1363,24 @@ function ApplyLink({ label = "Apply Now", className = "" }: ApplyLinkProps) {
   );
 }
 
+// StatusMark — per-subject marker on the result screen
+function StatusMark({ status }: { status: SubjectStatus }) {
+  if (status === "bsc") {
+    return <Check className="text-[#73D2F6]" size={22} strokeWidth={2.5} aria-label="Meets BSc requirement" />;
+  }
+  if (status === "diploma") {
+    return (
+      <span
+        className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold leading-none text-amber-800 sm:text-[11px]"
+        aria-label="Meets Diploma requirement only"
+      >
+        Diploma
+      </span>
+    );
+  }
+  return <X size={22} className="text-red-500" aria-label="Does not meet requirement" />;
+}
+
 // ===========================================================================
 // Main component
 // ===========================================================================
@@ -978,6 +1409,9 @@ export default function CheckEligibility() {
 
   const coresFilled = Boolean(form.english && form.mathCore && form.integratedScience);
 
+  const custom1Issue = customElectiveIssue(form.customElective1Name, form.customElective1Grade);
+  const custom2Issue = customElectiveIssue(form.customElective2Name, form.customElective2Grade);
+
   function handleCheck() {
     if (result.isIncomplete) setShowIncompleteModal(true);
     else setStep({ kind: "result" });
@@ -1002,6 +1436,9 @@ export default function CheckEligibility() {
     });
   }
 
+  const isBsc = result.outcome === "bsc";
+  const isDiploma = result.outcome === "diploma";
+
   return (
     <section className="w-full overflow-x-hidden bg-white py-6 text-[#080b50] sm:py-12">
       {showIncompleteModal && (
@@ -1018,6 +1455,7 @@ export default function CheckEligibility() {
         <div className="rounded-lg bg-white p-0 sm:p-6">
           <TabBar tab={tab} setTab={setTab} />
 
+          <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === "requirements" && (
             <RequirementsPanel onSwitchToChecker={handleSwitchToChecker} />
           )}
@@ -1052,9 +1490,12 @@ export default function CheckEligibility() {
                     </p>
                   </div>
                   <div>
-                    <p className="font-bold">Minimum Grade</p>
+                    <p className="font-bold">Minimum Grades</p>
                     <p className="text-gray-700">
-                      • A1–C6 is considered a qualifying grade for this checker.
+                      • BSc: {BSC_RANGE_LABEL} in all required subjects.
+                    </p>
+                    <p className="text-gray-700">
+                      • Diploma: electives may be as low as {DIPLOMA_MIN_LABEL}; core subjects stay at {BSC_MIN_LABEL}.
                     </p>
                   </div>
                 </div>
@@ -1078,7 +1519,7 @@ export default function CheckEligibility() {
                   label="Integrated Science"
                   value={form.integratedScience}
                   onChange={(g) => update("integratedScience", g)}
-                  helperText="Minimum required grade is C6."
+                  helperText={`Minimum required grade is ${BSC_MIN_LABEL}.`}
                 />
               </div>
 
@@ -1113,6 +1554,7 @@ export default function CheckEligibility() {
                     value={form.customElective1Grade}
                     onChange={(g) => update("customElective1Grade", g)}
                   />
+                  <FieldNote message={custom1Issue} />
                 </div>
                 <div className="space-y-3">
                   <TextInput
@@ -1126,6 +1568,7 @@ export default function CheckEligibility() {
                     value={form.customElective2Grade}
                     onChange={(g) => update("customElective2Grade", g)}
                   />
+                  <FieldNote message={custom2Issue} />
                 </div>
               </div>
 
@@ -1159,7 +1602,7 @@ export default function CheckEligibility() {
                 </div>
 
                 <div className="mb-6 mt-6 flex flex-col items-center justify-center sm:mt-8">
-                  {result.eligible ? (
+                  {isBsc && (
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#73D2F6] text-white sm:h-10 sm:w-10">
                         <Check size={22} strokeWidth={3} aria-hidden="true" className="sm:hidden" />
@@ -1169,7 +1612,19 @@ export default function CheckEligibility() {
                         ELIGIBLE
                       </span>
                     </div>
-                  ) : (
+                  )}
+                  {isDiploma && (
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500 text-white sm:h-10 sm:w-10">
+                        <Check size={22} strokeWidth={3} aria-hidden="true" className="sm:hidden" />
+                        <Check size={25} strokeWidth={3} aria-hidden="true" className="hidden sm:block" />
+                      </div>
+                      <span className="text-[20px] font-semibold tracking-wide text-[#080b50] sm:text-[30px]">
+                        DIPLOMA ELIGIBLE
+                      </span>
+                    </div>
+                  )}
+                  {result.outcome === "none" && (
                     <div className="flex items-center gap-2 sm:gap-3">
                       <XCircle className="fill-red-500 text-white" size={38} aria-hidden="true" />
                       <span className="text-[22px] font-semibold tracking-wide text-[#080b50] sm:text-[32px]">
@@ -1180,9 +1635,11 @@ export default function CheckEligibility() {
                 </div>
 
                 <p className="mx-auto mt-2 max-w-[420px] px-2 text-[13px] font-medium text-[#080b50] sm:text-[15px]">
-                  {result.eligible
-                    ? "You meet the minimum requirements for BSc Computer Science."
-                    : "You currently do not meet the minimum WASSCE requirements for the Computer Science programme."}
+                  {isBsc && "You meet the minimum requirements for BSc Computer Science."}
+                  {isDiploma &&
+                    "You don't meet the BSc minimum, but you meet the requirements for the Diploma in Computer Science."}
+                  {result.outcome === "none" &&
+                    "You currently do not meet the minimum WASSCE requirements for the Computer Science programmes."}
                 </p>
 
                 <div className="my-6 border-b border-[#080b50] sm:my-8" />
@@ -1203,22 +1660,18 @@ export default function CheckEligibility() {
                       </span>
                       <div className="flex shrink-0 items-center gap-2 sm:gap-8 lg:gap-12">
                         <span className="w-7 text-right text-[#080b50] sm:w-8">{s.grade || "—"}</span>
-                        <div className="flex w-7 justify-end sm:w-8">
-                          {s.passed ? (
-                            <Check className="text-[#73D2F6]" size={22} strokeWidth={2.5} aria-hidden="true" />
-                          ) : (
-                            <X size={22} className="text-red-500" aria-hidden="true" />
-                          )}
+                        <div className="flex w-14 justify-end sm:w-16">
+                          <StatusMark status={s.status} />
                         </div>
                       </div>
                     </li>
                   ))}
                 </ul>
 
-                {!result.eligible && result.qualifyingElectiveCount < 2 && (
+                {isDiploma && (
                   <p className="mx-auto mt-5 max-w-[420px] px-2 text-center text-[12px] text-gray-500 sm:mt-6 sm:text-[13px]">
-                    You need at least two qualifying electives beyond Mathematics — you currently have{" "}
-                    {result.qualifyingElectiveCount}.
+                    Subjects marked <strong>Diploma</strong> are below the BSc minimum ({BSC_MIN_LABEL}) but
+                    accepted for the Diploma.
                   </p>
                 )}
 
@@ -1256,23 +1709,32 @@ export default function CheckEligibility() {
                   POTENTIAL CS AREAS MATCH RATING
                 </span>
                 <p className="mx-auto mt-4 max-w-[520px] px-2 text-[13px] leading-relaxed text-gray-600 sm:mt-6 sm:text-[16px]">
-                  Based on your subjects and grades, these areas may be worth exploring.
+                  {isDiploma
+                    ? "Based on your subjects and grades, these are the areas closest to your profile. Select an area to see career options."
+                    : "Based on your subjects and grades, these are the top 3 areas best matched to your profile. Select an area to see career options."}
                 </p>
               </div>
 
               <div className="mx-auto max-w-[680px] space-y-5 sm:space-y-6">
-                {areas.map((area) => (
-                  <div key={area.key} className="block w-full text-left">
+                {areas.slice(0, 3).map((area) => (
+                  <button
+                    key={area.key}
+                    type="button"
+                    onClick={() => setStep({ kind: "career", area })}
+                    className="block w-full rounded-lg p-1.5 text-left transition-colors hover:bg-[#D9EEFF]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#203b82]/40 sm:p-2"
+                    aria-label={`${area.name}, ${area.fitLabel} match. View careers.`}
+                  >
                     <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
                       <span className="shrink-0 text-[13px] font-bold text-[#080b50] sm:w-1/3 sm:text-[16px]">
                         {area.name}
                       </span>
 
                       <div className="flex flex-1 items-center gap-2 sm:gap-3">
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200/80">
+                        {/* Track: #77D4FF (light blue). Fill: #060740 (dark navy). */}
+                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#77D4FF] sm:h-2">
                           <div
-                            className="h-full rounded-full bg-[#080b50]"
-                            style={{ width: `${Math.max(8, area.fitPercent)}%` }}
+                            className="h-full rounded-full bg-[#060740] transition-all duration-500 ease-out"
+                            style={{ width: `${Math.max(6, area.fitPercent)}%` }}
                           />
                         </div>
                         <span className="min-w-[60px] text-right text-[12px] font-bold text-[#080b50] sm:min-w-[70px] sm:text-[14px]">
@@ -1280,7 +1742,7 @@ export default function CheckEligibility() {
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -1341,6 +1803,7 @@ export default function CheckEligibility() {
               <ApplyLink className="mt-10 w-full rounded-xl py-3.5 sm:mt-14 sm:py-4 sm:text-[16px]" />
             </div>
           )}
+          </div>
         </div>
       </div>
     </section>
