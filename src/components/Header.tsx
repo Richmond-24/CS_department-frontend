@@ -173,7 +173,7 @@ const Header: React.FC<HeaderProps> = ({
 
 
             {/* News & Media */}
-            <div className="group relative z-50">
+            <div className="group relative z-100">
 
               <button
                 type="button"
