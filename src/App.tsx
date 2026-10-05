@@ -19,6 +19,7 @@ import NewsPage from './News/NewsPage'
 import ContactPage from './Contact/ContactPage'
 import ResearchPage from './Research/ResearchPage'
 import EligibilityChecker from './components/EligibilityChecker'
+import ClubsPage from './components/ClubsPage'
 
 function DropdownLoader({ label }: { label: string }) {
   return (
@@ -423,6 +424,8 @@ function App() {
         return <PeoplePage currentPath="/people/executives" />
       case '#eligibility-checker':
         return <EligibilityChecker />
+      case '#clubs':
+        return <ClubsPage />
       default:
         if (activeRoute.startsWith('#people/') && activeRoute.split('/').length === 2) {
           return <PersonProfile />

@@ -152,6 +152,24 @@ const Header: React.FC<HeaderProps> = ({
 
           <nav className="flex items-center gap-8 text-[16px] font-semibold text-white">
 
+            {/* Clubs */}
+            <a
+              href="#clubs"
+              onClick={(event) =>
+                handleNavigate(
+                  event,
+                  "#clubs",
+                  "Clubs",
+                )
+              }
+              className={`transition-opacity hover:opacity-80 ${
+                activeRoute === "#clubs"
+                  ? "font-bold text-[#dfeeff]"
+                  : ""
+              }`}
+            >
+              Clubs
+            </a>
             {/* Research */}
             <a
               href="#research"
@@ -935,6 +953,20 @@ const Header: React.FC<HeaderProps> = ({
                     : "translate-y-5 opacity-0"
                 }`}
               >
+                {/* Clubs */}
+                    <a
+                      href="#clubs"
+                      onClick={(event) =>
+                        handleNavigate(
+                          event,
+                          "#clubs",
+                          "Clubs",
+                        )
+                      }
+                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-center text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/10"
+                    >
+                      Clubs
+                    </a>
 
                 {/* Research */}
                 <a
