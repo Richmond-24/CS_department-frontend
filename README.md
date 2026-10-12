@@ -109,7 +109,7 @@ Deploy the contents of `dist/` to a static hosting provider. Since navigation us
 | Name | Team | GitHub |
 |---|---|---|
 | Richmond Afoblikame| Frontend Team | [@Richmond-24](https://github.com/Richmond-24) |
-|  Bright Kwesi Avornyo  | Frontend Team| [@Kelly-ux](https://github.com/kelly-ux)
-| Alhassan Iddriss kama | Frontend Team | [@Mr.Karmzy](https://github.com/mr. kamzy) |
+|  Bright Kwesi Avornyo  | Frontend Team| [@Kelly-ux](https://github.com/kelly-ux)|
+| Alhassan Iddriss kama | Frontend Team | [@Mr.Karmzy](https://github.com/mr.kamzy) |
 | Amadu Abdul-Rauf | Frontend Team  | [@abdulralph-53](https://github.com/abdulralph-53) |
 
