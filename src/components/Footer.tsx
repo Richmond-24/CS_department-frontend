@@ -6,10 +6,23 @@ import {
   MessageCircle,
   Mail,
   MapPin,
-  Camera,
-  BriefcaseBusiness,
-  Send,
+  Globe,
+  X,
 } from "lucide-react";
+
+const InstagramMark = ({ size = 18 }: { size?: number }) => (
+  <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const LinkedinMark = ({ size = 18 }: { size?: number }) => (
+  <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M5.2 3.5a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4ZM3.3 9.5h3.8v11H3.3v-11Zm6.1 0H13v1.5h.1c.5-.9 1.7-1.9 3.5-1.9 3.8 0 4.5 2.5 4.5 5.7v5.7h-3.8v-5.1c0-1.2 0-2.8-1.8-2.8s-2.1 1.3-2.1 2.7v5.2H9.4v-11Z" />
+  </svg>
+);
 
 // --- Custom Hook for Scroll Animations ---
 const useScrollReveal = (threshold = 0.1) => {
@@ -21,8 +34,6 @@ const useScrollReveal = (threshold = 0.1) => {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          // Optional: Stop observing once visible to save resources
-          // observer.disconnect(); 
         }
       },
       { threshold }
@@ -44,10 +55,10 @@ const useScrollReveal = (threshold = 0.1) => {
 };
 
 const socialLinks = [
-  { label: "Facebook", icon: Camera, href: "https://www.facebook.com" },
-  { label: "Instagram", icon: Camera, href: "https://www.instagram.com" },
-  { label: "LinkedIn", icon: BriefcaseBusiness, href: "https://www.linkedin.com" },
-  { label: "X", icon: Send, href: "https://x.com" },
+  { label: "Website", icon: Globe, href: "https://www.uenr.edu.gh" },
+  { label: "Instagram", icon: InstagramMark, href: "https://www.instagram.com" },
+  { label: "LinkedIn", icon: LinkedinMark, href: "https://www.linkedin.com" },
+  { label: "X", icon: X, href: "https://x.com" },
 ];
 
 const Footer = () => {
@@ -69,8 +80,8 @@ const Footer = () => {
       <div className="absolute inset-0 bg-[#07145c]/65" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#07145c]/75 via-[#07145c]/55 to-[#07145c]/70" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-12 lg:py-14">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-8 lg:px-12 lg:py-14">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-10">
           
           {/* Column 1: Contact Info */}
           <div 
@@ -79,17 +90,17 @@ const Footer = () => {
             }`}
             style={{ transitionDelay: '100ms' }}
           >
-            <h3 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-[16px] font-bold uppercase leading-5 tracking-wide text-white">
+            <h3 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-[14px] sm:text-[16px] font-bold uppercase leading-5 tracking-wide text-white">
               Computer Science
               <br />
               and Informatics
             </h3>
 
-            <h2 className="mt-5 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold leading-tight">
+            <h2 className="mt-5 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-xl sm:text-2xl font-semibold leading-tight">
               Get in Touch
             </h2>
 
-            <div className="mt-4 space-y-3 text-[15px] text-white/95">
+            <div className="mt-4 space-y-3 text-sm sm:text-[15px] text-white/95">
               <div className="flex items-center gap-3">
                 <a
                   href="tel:+2330000000"
@@ -135,7 +146,7 @@ const Footer = () => {
               </div>
             </div>
 
-            <h2 className="mt-7 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-xl font-semibold leading-tight">
+            <h2 className="mt-7 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-lg sm:text-xl font-semibold leading-tight">
               Admissions Call Center
             </h2>
 
@@ -169,7 +180,7 @@ const Footer = () => {
             }`}
             style={{ transitionDelay: '200ms' }}
           >
-            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold">
+            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-xl sm:text-2xl font-semibold">
               Explore
             </h2>
 
@@ -197,13 +208,13 @@ const Footer = () => {
             }`}
             style={{ transitionDelay: '300ms' }}
           >
-            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold">
+            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-xl sm:text-2xl font-semibold">
               Students
             </h2>
 
             <ul className="mt-5 space-y-3 text-[15px] font-medium text-white/90">
               {[
-                { label: 'Student Portal', href: '#home' },
+                { label: 'Student Portal', href: 'https://sis.uenr.edu.gh' },
                 { label: 'Resources', href: '#resources' },
                 { label: 'Academic Information', href: '#programmes' },
                 { label: 'Eligibility Checker', href: '#eligibility-checker' },
@@ -218,7 +229,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Column 4: Newsletter & Socials */}
+          {/* Column 4: Socials & Copyright */}
           <div 
             className={`transform transition-all duration-700 ease-out ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
@@ -226,37 +237,26 @@ const Footer = () => {
             style={{ transitionDelay: '400ms' }}
           >
             <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold leading-tight">
-              Subscribe to Newsletter
+              Connect With Us
             </h2>
 
-            <form className="mt-5">
-              <input
-                type="email"
-                placeholder="Enter Email Address"
-                className="h-11 w-full rounded-lg border border-white/20 bg-white/95 px-4 text-[15px] text-slate-900 outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-cyan-400"
-              />
-
-              <button
-                type="submit"
-                className="mt-2 h-11 w-full rounded-lg bg-[#0794ce] text-[15px] font-bold text-white transition hover:bg-[#067eaf]"
-              >
-                Subscribe
-              </button>
-            </form>
-
+            {/* Social Media Icons */}
             <div className="mt-5 flex gap-3">
               {socialLinks.map(({ label, icon: Icon, href }) => (
                 <a
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-md bg-white/90 text-[#07145c] transition hover:-translate-y-0.5 hover:bg-[#0794ce] hover:text-white"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-lg shadow-black/10 backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:border-cyan-300/60 hover:bg-gradient-to-br hover:from-cyan-400 hover:to-blue-600 hover:shadow-cyan-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300"
                 >
-                  <Icon size={16} />
+                  <Icon size={18} />
                 </a>
               ))}
             </div>
 
+            {/* Copyright & Legal Links */}
             <div className="mt-12 text-[10px] leading-4 text-white/75">
               <p>
                 © 2026 Computer Science & Informatics

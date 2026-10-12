@@ -14,7 +14,7 @@ type Slide = {
   buttonLink: string;
 };
 
-const slides: Slide[] = [
+const fallbackSlides: Slide[] = [
   {
     image: "/img1.webp",
     eyebrow: "COMPUTER SCIENCE & INFORMATICS",
@@ -106,11 +106,71 @@ const slides: Slide[] = [
   },
 ];
 
+const normalizeHeroSlide = (record: any, index: number): Slide => {
+  const titleText = String(record?.title || record?.heading || record?.headline || `Hero slide ${index + 1}`);
+  const lines = titleText.split(/\s*\n\s*/).filter(Boolean);
+
+  const title = lines.length > 1 ? (
+    <>
+      {lines.map((line, lineIndex) => (
+        <React.Fragment key={`${line}-${lineIndex}`}>
+          {lineIndex > 0 && <br />}
+          {line}
+        </React.Fragment>
+      ))}
+    </>
+  ) : (
+    <>{titleText}</>
+  );
+
+  return {
+    image: record?.image_url || record?.imageUrl || record?.image || record?.image_path || '/img1.webp',
+    eyebrow: record?.eyebrow || record?.tag || record?.category || 'COMPUTER SCIENCE & INFORMATICS',
+    title,
+    description:
+      record?.description || record?.subtitle || record?.subheading || 'Explore opportunities to study, innovate and grow with us.',
+    button: record?.button_text || record?.buttonText || record?.cta_text || 'Explore Programmes',
+    buttonLink: record?.button_link || record?.buttonLink || record?.cta_link || '#programmes',
+  };
+};
+
 const Home = () => {
+  const [slides, setSlides] = useState<Slide[]>(fallbackSlides);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSlides = async () => {
+      try {
+        const response = await fetch('https://uenr-csisd-backend.onrender.com/api/v1/heroes/active');
+        if (!response.ok) {
+          throw new Error('Unable to fetch active heroes');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
+
+        if (isMounted && items.length) {
+          setSlides(items.map((record: any, index: number) => normalizeHeroSlide(record, index)));
+          setCurrentSlide(0);
+        }
+      } catch {
+        if (isMounted) {
+          setSlides(fallbackSlides);
+          setCurrentSlide(0);
+        }
+      }
+    };
+
+    loadSlides();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   /* Mount animation */
   useEffect(() => {
@@ -172,7 +232,7 @@ const Home = () => {
   return (
     <main
       className="w-full bg-white text-[#060740]"
-      style={{ fontFamily: "Lufga, sans-serif" }}
+      style={{ fontFamily: "'Lufga', sans-serif", fontWeight: 700 }}
     >
       {/* =====================================================
           HERO SLIDER
@@ -265,6 +325,8 @@ const Home = () => {
                   transform: mounted ? 'translateX(0)' : 'translateX(-20px)',
                   transition: 'all 0.7s ease-out',
                   transitionDelay: '400ms',
+                  fontFamily: "'Lufga', sans-serif",
+                  fontWeight: 700,
                 }}
               >
                 {slide.eyebrow}
@@ -279,6 +341,8 @@ const Home = () => {
                 transform: mounted ? 'translateY(0)' : 'translateY(30px)',
                 transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 transitionDelay: '500ms',
+                fontFamily: "'Lufga', sans-serif",
+                fontWeight: 700,
               }}
             >
               {slide.title}
@@ -292,6 +356,8 @@ const Home = () => {
                 transform: mounted ? 'translateY(0)' : 'translateY(20px)',
                 transition: 'all 0.7s ease-out',
                 transitionDelay: '600ms',
+                fontFamily: "'Lufga', sans-serif",
+                fontWeight: 500,
               }}
             >
               {slide.description}

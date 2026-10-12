@@ -1,5 +1,20 @@
 @import 'tailwindcss';
 
+/* Shared type scale: comfortable at phone widths and restrained on large screens. */
+@theme {
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: clamp(1.375rem, 1.25rem + 0.5vw, 1.625rem);
+  --text-3xl: clamp(1.625rem, 1.35rem + 1.1vw, 2rem);
+  --text-4xl: clamp(1.875rem, 1.35rem + 2.1vw, 2.75rem);
+  --text-5xl: clamp(2.125rem, 1.4rem + 3vw, 3.25rem);
+  --text-6xl: clamp(2.375rem, 1.5rem + 4vw, 3.75rem);
+  --text-7xl: clamp(2.625rem, 1.55rem + 5vw, 4.5rem);
+}
+
 :root {
   --color-navy: #060740;
   --color-royal: #18337a;
@@ -7,11 +22,11 @@
   --color-sky: #02befe;
   --color-ice: #edfaff;
 
-  /* Primary site font: Lufga. Place font files in public/fonts/ (woff2 preferred).
-     If you don't have Lufga files, the browser will fall back to Inter/Segoe UI/etc. */
-  font-family: Lufga, Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Font variables: use Lufga as the display font and fallback to Satoshi / Inter */
+  --font-display: 'Lufga', 'Satoshi', Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-body: 'Lufga', 'Satoshi', Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: clamp(15px, 0.25vw + 14px, 17px);
   line-height: 1.5;
-  font-weight: 400;
   color: var(--color-navy);
   background: #f8fbff;
   color-scheme: light;
@@ -21,16 +36,25 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* -------------------------------------------------------------
-   Lufga @font-face (add your font files under public/fonts/)
-   Example files: public/fonts/Lufga-Regular.woff2
-                public/fonts/Lufga-Bold.woff2
-   If you don't have these files, the browser will use the fallback fonts.
--------------------------------------------------------------- */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Lufga';
-  src: url('/fonts/Lufga-Regular.woff2') format('woff2'),
-       url('/fonts/Lufga-Regular.woff') format('woff');
+  src: url('/fonts/Lufga-Regular.woff') format('woff');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -38,8 +62,7 @@
 
 @font-face {
   font-family: 'Lufga';
-  src: url('/fonts/Lufga-Bold.woff2') format('woff2'),
-       url('/fonts/Lufga-Bold.woff') format('woff');
+  src: url('/fonts/Lufga-Bold.woff') format('woff');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -60,6 +83,23 @@ body {
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 32%),
     linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+  /* Apply site-wide font family and sensible default weight */
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  font-weight: 400;
+}
+
+/* Use display font and stronger weight for headings to match homepage hero */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+p, li {
+  text-wrap: pretty;
 }
 
 button,
@@ -137,58 +177,361 @@ input {
   }
 }
 
+/* ============ Modern Figma-style route loader ============ */
+
 .route-loader {
+  position: relative;
   display: flex;
-  min-height: 420px;
+  min-height: calc(100svh - 90px);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.25rem;
-  background: linear-gradient(180deg, rgba(230, 247, 255, 0.7), rgba(255, 255, 255, 0.95));
-  padding: 2rem;
+  overflow: hidden;
+  padding: 3.5rem 1.25rem;
+  background: #ffffff; /* plain white background for loading page */
   animation: fadeInLoader 0.35s ease-out;
 }
 
-.route-loader__spinner {
-  position: relative;
-  width: 86px;
-  height: 86px;
-  border-radius: 50%;
-  border: 5px solid rgba(32, 59, 130, 0.12);
-  border-top-color: #203b82;
-  border-right-color: #26b4ff;
-  animation: spinLoader 0.9s linear infinite;
-  box-shadow: 0 14px 28px rgba(32, 59, 130, 0.14);
-}
-
-.route-loader__spinner::before,
-.route-loader__spinner::after {
+/* Figma-canvas dot grid, faded toward the edges */
+.route-loader::before {
   content: "";
   position: absolute;
-  inset: 14px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  border-top-color: rgba(38, 180, 255, 0.9);
-  animation: spinLoader 1.25s linear infinite reverse;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(24, 51, 122, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 51, 122, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, black 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, black 25%, transparent 78%);
+  pointer-events: none;
 }
 
-.route-loader__spinner::after {
-  inset: 28px;
-  border-top-color: rgba(32, 59, 130, 0.8);
+.route-loader__orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(56px);
+  pointer-events: none;
+  animation: loaderDrift 9s ease-in-out infinite alternate;
 }
 
-.route-loader__label {
-  margin: 0;
-  font-size: 1.05rem;
+.route-loader__orb--cyan {
+  width: 340px;
+  height: 340px;
+  top: -90px;
+  left: -70px;
+  background: radial-gradient(circle, rgba(2, 190, 254, 0.55), transparent 70%);
+}
+
+.route-loader__orb--blue {
+  width: 430px;
+  height: 430px;
+  right: -110px;
+  bottom: -150px;
+  background: radial-gradient(circle, rgba(24, 51, 122, 0.38), transparent 70%);
+  animation-delay: -3s;
+  animation-duration: 12s;
+}
+
+.route-loader__orb--violet {
+  width: 250px;
+  height: 250px;
+  top: 34%;
+  right: 10%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%);
+  animation-delay: -6s;
+  animation-duration: 14s;
+}
+
+.route-loader__card {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 380px);
+  border-radius: 28px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: #ffffff; /* solid white card */
+  box-shadow:
+    0 20px 36px -18px rgba(15,23,42,0.06),
+    0 8px 18px -10px rgba(15,23,42,0.04);
+  padding: 1.4rem;
+  animation: loaderCardIn 0.55s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+.route-loader__card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 28px;
+  right: 28px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(2, 190, 254, 0.9), rgba(24, 51, 122, 0.9), transparent);
+}
+
+/* --- spinner stage --- */
+
+.loader-stage {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  margin: 1.9rem auto;
+}
+
+.loader-stage__halo {
+  position: absolute;
+  inset: 20px;
+  border-radius: 30px;
+  background: radial-gradient(circle, rgba(2, 190, 254, 0.4), transparent 68%);
+  filter: blur(12px);
+  animation: loaderHalo 2.6s ease-in-out infinite;
+}
+
+.loader-stage__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, transparent 0deg 40deg, #02befe 130deg, #18337a 220deg, transparent 310deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  animation: loaderSpin 1.15s cubic-bezier(0.55, 0.12, 0.45, 0.88) infinite;
+}
+
+.loader-stage__ring--inner {
+  inset: 13px;
+  background: conic-gradient(from 180deg, transparent 0deg 70deg, rgba(2, 190, 254, 0.9) 160deg, rgba(6, 7, 64, 0.9) 240deg, transparent 330deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  animation: loaderSpinReverse 1.7s linear infinite;
+}
+
+.loader-stage__orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  animation: loaderSpin 1.15s cubic-bezier(0.55, 0.12, 0.45, 0.88) infinite;
+}
+
+.loader-stage__orbit > span {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border-radius: 9999px;
+  background: #02befe;
+  box-shadow: 0 0 12px 3px rgba(2, 190, 254, 0.75);
+}
+
+.loader-stage__core {
+  position: absolute;
+  inset: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  background: linear-gradient(140deg, #f3f4f6 0%, #e6eef6 55%, #dbe9f3 110%); /* lighter core */
+  color: var(--color-navy);
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #203b82;
+  box-shadow:
+    0 10px 22px -8px rgba(15,23,42,0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  animation: loaderBreathe 2.6s ease-in-out infinite;
 }
 
-@keyframes spinLoader {
+/* --- wireframe skeleton --- */
+
+.loader-wireframe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border-radius: 18px;
+  border: 1px solid rgba(24, 51, 122, 0.07);
+  background: rgba(248, 251, 255, 0.75);
+  padding: 1rem;
+}
+
+.loader-shimmer {
+  border-radius: 7px;
+  background: linear-gradient(100deg, rgba(24, 51, 122, 0.08) 35%, rgba(255, 255, 255, 0.95) 50%, rgba(24, 51, 122, 0.08) 65%);
+  background-size: 220% 100%;
+  animation: loaderShimmer 1.5s ease-in-out infinite;
+}
+
+.loader-wireframe > .loader-shimmer:nth-of-type(2) {
+  animation-delay: 0.12s;
+}
+
+.loader-wireframe > .loader-shimmer:nth-of-type(3) {
+  animation-delay: 0.24s;
+}
+
+.loader-shimmer--title {
+  width: 52%;
+  height: 12px;
+  border-radius: 8px;
+}
+
+.loader-shimmer--line {
+  width: 100%;
+  height: 8px;
+}
+
+.loader-shimmer--short {
+  width: 68%;
+}
+
+.loader-wireframe__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.loader-shimmer--pill {
+  width: 84px;
+  height: 24px;
+  border-radius: 999px;
+}
+
+.loader-shimmer--pill-ghost {
+  width: 64px;
+  background: linear-gradient(100deg, rgba(2, 190, 254, 0.12) 35%, rgba(255, 255, 255, 0.9) 50%, rgba(2, 190, 254, 0.12) 65%);
+  background-size: 220% 100%;
+}
+
+/* --- progress --- */
+
+.loader-progress {
+  margin-top: 0.7rem;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(24, 51, 122, 0.08);
+  overflow: hidden;
+}
+
+.loader-progress__fill {
+  position: relative;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #02befe, #0387c5, #18337a, #02befe);
+  background-size: 220% 100%;
+  animation: loaderGradientMove 1.1s linear infinite;
+  transition: width 90ms linear;
+}
+
+/* --- steps / phrase / caption --- */
+
+.loader-phrase {
+  display: inline-block;
+  animation: loaderPhraseIn 0.4s ease both;
+}
+
+.loader-dot--active {
+  animation: loaderDotPulse 1.1s ease-in-out infinite;
+}
+
+.route-loader__caption {
+  position: relative;
+  z-index: 1;
+  margin: 1.9rem 0 0;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(24, 51, 122, 0.5);
+  animation: loaderPhraseIn 0.6s 0.15s ease both;
+}
+
+/* --- loader keyframes --- */
+
+@keyframes loaderSpin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes loaderSpinReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes loaderBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.045);
+  }
+}
+
+@keyframes loaderHalo {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes loaderShimmer {
+  0% {
+    background-position: 210% 0;
+  }
+  100% {
+    background-position: -210% 0;
+  }
+}
+
+@keyframes loaderGradientMove {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@keyframes loaderDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(26px, -20px, 0) scale(1.08);
+  }
+}
+
+@keyframes loaderCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes loaderPhraseIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loaderDotPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(2, 190, 254, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(2, 190, 254, 0.04);
   }
 }
 

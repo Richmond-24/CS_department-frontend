@@ -579,6 +579,8 @@ export default function ResourcesPage({ currentPath = '/resources' }: ResourcesP
               </div>
             </div>
           </section>
+          {/* Spacer to ensure gap between Internship CTA and footer */}
+          <div aria-hidden="true" className="h-24 md:h-32 lg:h-40" />
         </main>
       );
   }
