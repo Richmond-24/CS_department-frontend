@@ -41,7 +41,7 @@ const WORDS = [
 
 export default function About() {
   return (
-    <main className="relative overflow-hidden bg-[#F6FAFD] text-[#080d4f]">
+    <main className="relative overflow-hidden bg-white text-[#080d4f] sm:bg-[#F6FAFD]">
       <style>{`
         @keyframes ab-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
         @keyframes ab-float2{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}
@@ -54,12 +54,13 @@ export default function About() {
         .ab-marquee{animation:ab-marquee 30s linear infinite}.ab-marquee:hover{animation-play-state:paused}
         .ab-text{background:linear-gradient(90deg,#0387c5,#02befe,#6366f1,#0387c5);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:ab-shine 5s linear infinite}
         .ab-ring{animation:ab-ring 2.4s ease-out infinite}
+        @media(max-width:639px){.ab-text{background:none;color:#080d4f;animation:none}.ab-ring{display:none}}
         @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
       `}</style>
 
       {/* ambient blobs */}
-      <div className="ab-blob pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#02befe]/20 blur-3xl" />
-      <div className="ab-blob pointer-events-none absolute -right-24 top-[28%] h-80 w-80 rounded-full bg-[#6366f1]/15 blur-3xl" style={{ animationDelay: "-7s" }} />
+      <div className="ab-blob pointer-events-none absolute -left-24 top-10 hidden h-72 w-72 rounded-full bg-[#02befe]/20 blur-3xl sm:block" />
+      <div className="ab-blob pointer-events-none absolute -right-24 top-[28%] hidden h-80 w-80 rounded-full bg-[#6366f1]/15 blur-3xl sm:block" style={{ animationDelay: "-7s" }} />
 
       {/* ================= HERO ================= */}
       <section className="relative mx-auto max-w-7xl px-5 pb-16 pt-14 sm:px-8 sm:pt-20 lg:px-12 lg:pb-24 lg:pt-28">
@@ -101,7 +102,7 @@ export default function About() {
                 alt="Computer Science and Informatics students"
                 className="h-[400px] w-full object-cover object-center transition-transform duration-[1200ms] ease-out group-hover:scale-105 sm:h-[480px] lg:h-[560px]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#060740]/85 via-[#060740]/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
               <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/20 bg-white/10 p-4 text-white backdrop-blur-md sm:inset-x-6 sm:bottom-6 sm:p-5">
                 <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.18em] sm:text-[11px]">
@@ -120,8 +121,8 @@ export default function About() {
           {[0, 1].map((k) => (
             <div key={k} className="flex shrink-0 items-center" aria-hidden={k === 1}>
               {WORDS.map(({ label, icon: Icon }) => (
-                <div key={`${k}-${label}`} className="group mx-2.5 flex items-center gap-3 rounded-full border border-[#080d4f]/10 bg-[#F6FAFD] py-2 pl-2 pr-6 transition duration-300 hover:-translate-y-1 hover:border-transparent hover:bg-white hover:shadow-[0_14px_30px_-14px_rgba(8,13,79,.4)] sm:mx-3">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#e8f8fc] text-[#0387c5] transition duration-300 group-hover:scale-110 group-hover:bg-[#0387c5] group-hover:text-white sm:h-12 sm:w-12">
+                <div key={`${k}-${label}`} className="group mx-2.5 flex items-center gap-3 rounded-full border border-slate-200 bg-white py-2 pl-2 pr-6 transition duration-300 md:hover:-translate-y-1 md:hover:border-transparent md:hover:shadow-[0_14px_30px_-14px_rgba(8,13,79,.4)] sm:mx-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-[#080d4f] transition duration-300 md:group-hover:scale-110 md:group-hover:border-[#0387c5] md:group-hover:bg-[#0387c5] md:group-hover:text-white sm:h-12 sm:w-12">
                     <Icon size={22} strokeWidth={2} />
                   </span>
                   <span className="whitespace-nowrap text-xl font-extrabold tracking-tight text-[#080d4f] sm:text-2xl">{label}</span>
