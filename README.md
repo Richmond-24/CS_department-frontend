@@ -1,6 +1,6 @@
-# Computer Science & Informatics Department Website
+# Computer Science & Informatics Department Website | UENR
 
-The public website for the Department of Computer Science and Informatics. It presents the department, its academic programmes, staff, student resources, research, events, news, and contact information in a responsive single-page application.
+The public website for the Department of Computer Science and Informatics(UENR). It presents the department, its academic programmes, staff, student resources, research, events, news, and contact information in a responsive single-page application.
 
 ## Features
 
@@ -109,7 +109,7 @@ Deploy the contents of `dist/` to a static hosting provider. Since navigation us
 | Name | Team | GitHub |
 |---|---|---|
 | Richmond Afoblikame| Frontend Team | [@Richmond-24](https://github.com/Richmond-24) |
-|  Bright Kwesi Avornyo  | Frontend Team| [GitHub Profile](https://github.com/) |
-| Developer 3 | Frontend Team | [GitHub Profile](https://github.com/) |
-| Developer 4 | Frontend Team  | [GitHub Profile](https://github.com/) |
+|  Bright Kwesi Avornyo  | Frontend Team| [@Kelly-ux](https://github.com/kelly-ux)
+| Alhassan Iddriss kama | Frontend Team | [@Mr.Karmzy](https://github.com/mr. kamzy) |
+| Amadu Abdul-Rauf | Frontend Team  | [@abdulralph-53](https://github.com/abdulralph-53) |
 
