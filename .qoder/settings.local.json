@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(agent-browser skills get core --full 2>&1 | grep -iE \"mirror|proxy|download.*host|PLAYWRIGHT|CHROME.*URL|npmmirror\" | head; echo ---; agent-browser install --help 2>&1 | grep -iE \"mirror|host|url\")"
-    ]
-  }
-}
