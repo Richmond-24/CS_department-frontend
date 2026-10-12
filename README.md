@@ -1,161 +1,115 @@
-Computer Science and Informatics Departmental Website
-University of Energy and Natural Resources (UENR) — Sunyani, Ghana
+# Computer Science & Informatics Department Website
 
-Welcome to the frontend development repository for the Department of Computer Science and Informatics at the University of Energy and Natural Resources (UENR), Ghana.
+The public website for the Department of Computer Science and Informatics. It presents the department, its academic programmes, staff, student resources, research, events, news, and contact information in a responsive single-page application.
 
-This project aims to develop a modern, responsive, and user-friendly departmental website that provides students, lecturers, researchers, alumni, and prospective students with easy access to departmental information, academic programmes, research activities, and other important resources.
-About the Project
+## Features
 
-The Computer Science and Informatics Departmental Website is a web application designed to strengthen the department's digital presence and provide a central platform for academic information, departmental news, events, faculty profiles, and educational resources.
+- Responsive layouts with desktop and mobile navigation.
+- Hash-based navigation for the home page and department sections.
+- Programme information for undergraduate and postgraduate study.
+- Staff, executive, alumni, and student information pages.
+- Student resources, including the handbook, calendar, course lists, and internship information.
+- Research, news, media, gallery, events, clubs, and contact pages.
+- An eligibility checker and career prospects section.
+- Home page hero slides and department About content, with fallback content when remote data is unavailable.
 
-The website focuses on delivering a professional user experience, making information accessible, and ensuring compatibility across desktop computers, tablets, and mobile devices.
-Key Features
+## Technology
 
-The website includes the following sections:
+- React 19 and TypeScript
+- Vite 8
+- Tailwind CSS 4
+- Lucide React icons
+- ESLint
 
-    Home: An overview of the department and its activities.
-    About Us: Information about the department, its mission, vision, and objectives.
-    Academic Programmes: Information about academic programmes and areas of study.
-    People: Profiles of lecturers, researchers, and departmental personnel.
-    Research: Information about research activities, projects, and academic contributions.
-    News: Departmental announcements, updates, and achievements.
-    Events: Information about seminars, workshops, conferences, and other departmental activities.
-    Gallery: Photos and highlights from departmental events and activities.
-    Resources: Access to useful academic materials and departmental resources.
-    Contact: Contact information and communication channels.
+## Requirements
 
-Additional features and improvements may be introduced as development progresses.
-Technology Stack
+Install a current Node.js LTS release and npm. The project uses the `package-lock.json` lockfile to keep dependency versions consistent.
 
-The project uses modern web development technologies:
-Technology	Purpose
-React	Building reusable user interface components
-TypeScript	Type safety and maintainable code
-Vite	Development server and build tooling
-Tailwind CSS	Responsive styling and interface design
-ESLint	Code quality and linting
-Project Structure
-departmental-website/
-├── public/
-│   └── fonts/
-├── src/
-│   ├── about/
-│   ├── Contact/
-│   ├── Event/
-│   ├── Gallery/
-│   ├── News/
-│   ├── People/
-│   ├── Research/
-│   ├── Resources/
-│   ├── programs/
-│   ├── components/
-│   ├── App.tsx
-│   └── index.css
-├── index.html
-├── package.json
-├── package-lock.json
-├── tailwind.config.js
-├── vite.config.ts
-└── README.md
-Getting Started
+## Getting started
 
-Follow the instructions below to set up and run the project locally.
-Prerequisites
-
-Before getting started, ensure you have installed:
-
-    Node.js
-    npm
-    Git
-    A code editor such as Visual Studio Code
-
-1. Clone the Repository
-
-git clone https://github.com/Richmond-24/CS_department-frontend.git
-
-2. Navigate to the Project Directory
-
-cd CS_department-frontend
-
-3. Install Dependencies
-
+```bash
 npm install
-
-4. Start the Development Server
-
 npm run dev
+```
 
-Vite will display a local development URL in your terminal, typically:
+Vite prints the local development URL in the terminal, usually `http://localhost:5173`.
 
-http://localhost:5173
+## Available commands
 
-Open the URL in your browser to view the website.
-Available Scripts
-Command	Description
-npm run dev	Starts the local development server
-npm run build	Builds the application for production
-npm run preview	Previews the production build locally
-npm run lint	Runs ESLint to check code quality
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the local development server with hot reload. |
+| `npm run build` | Type-check the application and create a production build in `dist/`. |
+| `npm run preview` | Serve the production build locally. Run `npm run build` first. |
+| `npm run lint` | Run ESLint against the project. |
 
-The available commands depend on the project's package.json configuration.
-Development Guidelines
+## Site navigation
 
-Contributors should follow these guidelines:
+The app uses URL hashes to select pages. Examples include `#home`, `#about`, `#programmes`, `#people`, `#resources`, `#research`, `#news`, `#gallery`, `#events`, `#contact`, `#careers`, and `#clubs`. Some sections have nested hashes, such as `#resources/calendar` and `#people/teaching`.
 
-    Write clean, readable, and maintainable React and TypeScript code.
-    Use reusable components wherever practical.
-    Follow the existing project structure and naming conventions.
-    Ensure the website is responsive across desktop, tablet, and mobile devices.
-    Follow consistent styling and accessibility practices.
-    Test changes before committing them.
-    Use descriptive Git commit messages.
-    Never commit passwords, API keys, credentials, or other sensitive information.
+## Project structure
 
-Contributing
+```text
+src/
+  App.tsx                 Application shell, navigation, and page selection
+  components/             Shared layout and homepage sections
+  programs/               Undergraduate and postgraduate programme pages
+  People/                 Staff, student, alumni, and profile pages
+  Resources/              Student resources and academic information
+  Research/               Research page
+  News/                   News and media pages
+  Gallery/                Department gallery
+  Event/                  Events page
+  Contact/                Contact page
+  about/                  Department overview page
+  data/                   Locally defined data
+public/                   Images, fonts, and other static assets
+```
 
-Contributions from authorized departmental team members and project collaborators are welcome.
+## Content and remote data
 
-To contribute:
+The home page requests its active hero slides from:
 
-    Clone the repository.
-    Create a new branch for your feature or fix.
-    Implement and test your changes.
-    Commit your changes with a descriptive message.
-    Push your branch to GitHub.
-    Submit a pull request for review when appropriate.
+```text
+https://uenr-csisd-backend.onrender.com/api/v1/heroes/active
+```
 
-Create a feature branch:
+The department About page tries the following endpoints in order and falls back to its built-in content if none returns usable data:
 
-git checkout -b feature/your-feature-name
+```text
+https://uenr-csisd-backend.onrender.com/api/v1/department/about
+https://uenr-csisd-backend.onrender.com/api/v1/department
+https://uenr-csisd-backend.onrender.com/api/v1/about
+```
 
-Stage and commit your changes:
+The About page caches the normalized response in browser local storage. These service URLs are currently defined in the frontend source; no `.env` configuration is required by the project as it stands.
 
-git add .
-git commit -m "Describe your changes"
+Some pages use locally defined sample content and images hosted by Unsplash. Replace sample entries, contact details, and social links with approved department information before publishing or when updating the site.
 
-Push your branch:
+## Production build and deployment
 
-git push -u origin feature/your-feature-name
+Create the static production site with:
 
-## Developers and Contributors
+```bash
+npm run build
+```
 
-The Computer Science and Informatics Departmental Website is developed collaboratively to improve the digital presence of the Department of Computer Science and Informatics at the University of Energy and Natural Resources (UENR).
+Deploy the contents of `dist/` to a static hosting provider. Since navigation uses URL hashes, page selection stays within the single-page application and does not require a server-side route rewrite. Confirm that the deployed site can reach the remote data endpoints and that its image and font assets load correctly.
 
-We appreciate the contributions of everyone involved in designing, developing, testing, and maintaining this project.
+## Maintenance notes
+
+- Keep `package-lock.json` committed when changing dependencies.
+- Place static files served by root-relative paths in `public/`.
+- Update the endpoint URLs in the source if the backend host or API paths change.
+- Check contact numbers, email addresses, admissions links, and social account URLs against current departmental details before release.
+
 
 ### Development Team
 
 | Name | Team | GitHub |
 |---|---|---|
 | Richmond Afoblikame| Frontend Team | [@Richmond-24](https://github.com/Richmond-24) |
-| Bright | Frontend Team| [GitHub Profile](https://github.com/) |
+|  Bright Kwesi Avornyo  | Frontend Team| [GitHub Profile](https://github.com/) |
 | Developer 3 | Frontend Team | [GitHub Profile](https://github.com/) |
 | Developer 4 | Frontend Team  | [GitHub Profile](https://github.com/) |
 
-
-**Department:** Computer Science and Informatics  
-**Institution:** University of Energy and Natural Resources (UENR)  
-**Location:** Sunyani, Bono Region, Ghana
-This project aims to support the digital presence of the Department of Computer Science and Informatics at UENR by improving access to departmental information, academic programmes, research activities, news, events, and educational resources.
-
-© University of Energy and Natural Resources (UENR) — Computer Science and Informatics Departmental Website Project.
