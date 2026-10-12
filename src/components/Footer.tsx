@@ -80,12 +80,12 @@ const Footer = () => {
       <div className="absolute inset-0 bg-[#07145c]/65" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#07145c]/75 via-[#07145c]/55 to-[#07145c]/70" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-8 lg:px-12 lg:py-14">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-14">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-2 md:gap-8 lg:grid-cols-4 lg:gap-10">
           
           {/* Column 1: Contact Info */}
-          <div 
-            className={`transform transition-all duration-700 ease-out ${
+          <div
+            className={`col-span-2 transform transition-all duration-700 ease-out md:col-span-1 ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}
             style={{ transitionDelay: '100ms' }}
@@ -96,11 +96,11 @@ const Footer = () => {
               and Informatics
             </h3>
 
-            <h2 className="mt-5 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-xl sm:text-2xl font-semibold leading-tight">
+            <h2 className="mt-3 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-lg font-semibold leading-tight sm:mt-5 sm:text-2xl">
               Get in Touch
             </h2>
 
-            <div className="mt-4 space-y-3 text-sm sm:text-[15px] text-white/95">
+            <div className="mt-3 space-y-2 text-sm text-white/95 sm:mt-4 sm:space-y-3 sm:text-[15px]">
               <div className="flex items-center gap-3">
                 <a
                   href="tel:+2330000000"
@@ -146,11 +146,11 @@ const Footer = () => {
               </div>
             </div>
 
-            <h2 className="mt-7 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-lg sm:text-xl font-semibold leading-tight">
+            <h2 className="mt-5 font-[var(--font-display,'Space_Grotesk',sans-serif)] text-base font-semibold leading-tight sm:mt-7 sm:text-xl">
               Admissions Call Center
             </h2>
 
-            <div className="mt-3 space-y-3 text-[15px] text-white/95">
+            <div className="mt-2 space-y-2 text-sm text-white/95 sm:mt-3 sm:space-y-3 sm:text-[15px]">
               <div className="flex items-center gap-3">
                 <a
                   href="tel:+2330000000"
@@ -184,7 +184,7 @@ const Footer = () => {
               Explore
             </h2>
 
-            <ul className="mt-5 space-y-3 text-[15px] font-medium text-white/90">
+            <ul className="mt-3 space-y-2 text-sm font-medium text-white/90 sm:mt-5 sm:space-y-3 sm:text-[15px]">
               {[
                 { label: 'About', href: '#about' },
                 { label: 'Programmes', href: '#programmes' },
@@ -212,7 +212,7 @@ const Footer = () => {
               Students
             </h2>
 
-            <ul className="mt-5 space-y-3 text-[15px] font-medium text-white/90">
+            <ul className="mt-3 space-y-2 text-sm font-medium text-white/90 sm:mt-5 sm:space-y-3 sm:text-[15px]">
               {[
                 { label: 'Student Portal', href: 'https://sis.uenr.edu.gh' },
                 { label: 'Resources', href: '#resources' },
@@ -230,13 +230,13 @@ const Footer = () => {
           </div>
 
           {/* Column 4: Socials & Copyright */}
-          <div 
-            className={`transform transition-all duration-700 ease-out ${
+          <div
+            className={`col-span-2 transform transition-all duration-700 ease-out md:col-span-1 ${
               isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}
             style={{ transitionDelay: '400ms' }}
           >
-            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-2xl font-semibold leading-tight">
+            <h2 className="font-[var(--font-display,'Space_Grotesk',sans-serif)] text-xl font-semibold leading-tight sm:text-2xl">
               Connect With Us
             </h2>
 
@@ -257,7 +257,7 @@ const Footer = () => {
             </div>
 
             {/* Copyright & Legal Links */}
-            <div className="mt-12 text-[10px] leading-4 text-white/75">
+            <div className="mt-6 text-[10px] leading-4 text-white/75 sm:mt-12">
               <p>
                 © 2026 Computer Science & Informatics
                 <br />

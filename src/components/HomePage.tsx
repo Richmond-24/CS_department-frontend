@@ -238,7 +238,7 @@ const Home = () => {
           HERO SLIDER
       ===================================================== */}
       <section
-        className="relative h-[560px] overflow-hidden lg:h-[650px]"
+        className="relative h-[540px] overflow-hidden sm:h-[560px] lg:h-[650px]"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
@@ -299,7 +299,7 @@ const Home = () => {
         <div className="relative z-20 mx-auto flex h-full max-w-[1400px] items-center px-6 lg:px-16">
           <div
             key={currentSlide}
-            className="max-w-[760px]"
+            className="w-full max-w-[760px]"
           >
             {/* Eyebrow with line animation */}
             <div 
@@ -335,7 +335,7 @@ const Home = () => {
 
             {/* Main heading with staggered word animation */}
             <h1 
-              className="text-[44px] font-bold leading-[1.03] tracking-[-2px] text-white sm:text-[56px] lg:text-[68px]"
+              className="break-words text-[clamp(2rem,8.5vw,2.5rem)] font-bold leading-[1.08] tracking-[-1px] text-white sm:text-[56px] sm:leading-[1.03] sm:tracking-[-2px] lg:text-[68px]"
               style={{
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateY(0)' : 'translateY(30px)',
@@ -350,7 +350,7 @@ const Home = () => {
 
             {/* Description with fade-up */}
             <p 
-              className="mt-6 max-w-[610px] text-[16px] font-medium leading-7 text-white/95 sm:text-[19px]"
+              className="mt-4 max-w-[610px] text-[15px] font-medium leading-6 text-white/95 sm:mt-6 sm:text-[19px] sm:leading-7"
               style={{
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateY(0)' : 'translateY(20px)',
@@ -365,7 +365,7 @@ const Home = () => {
 
             {/* CTA with hover effects */}
             <div 
-              className="mt-8"
+              className="mt-6 sm:mt-8"
               style={{
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateY(0)' : 'translateY(20px)',
@@ -375,7 +375,7 @@ const Home = () => {
             >
               <a
                 href={slide.buttonLink}
-                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-lg bg-[#0387C5] px-7 py-4 text-[16px] font-semibold text-white shadow-lg transition-all duration-500 hover:-translate-y-1 hover:bg-[#18337a] hover:shadow-xl active:scale-95"
+                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-lg bg-[#0387C5] px-5 py-3 text-[15px] font-semibold text-white shadow-lg transition-all duration-500 hover:-translate-y-1 hover:bg-[#18337a] hover:shadow-xl active:scale-95 sm:px-7 sm:py-4 sm:text-[16px]"
                 style={{
                   boxShadow: '0 10px 30px rgba(3,135,197,0.3)',
                 }}

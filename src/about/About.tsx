@@ -285,9 +285,9 @@ export default function About() {
       {/* =====================================================
           MESSAGE FROM HOD - NEW DESIGN
       ====================================================== */}
-      <section className="relative px-5 py-16 sm:px-8 sm:py-24 md:px-12 lg:py-32 bg-slate-50">
+      <section className="relative bg-white px-5 py-12 sm:px-8 sm:py-20 md:bg-slate-50 md:px-12 lg:py-32">
         {/* Decorative Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="pointer-events-none absolute top-0 hidden h-full w-full overflow-hidden md:block">
            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-[#079bd3]/5 blur-3xl" />
            <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#080d4f]/5 blur-3xl" />
         </div>
@@ -303,31 +303,31 @@ export default function About() {
                   <span className="text-sm font-bold tracking-widest uppercase text-[#079bd3]">Message from the HOD</span>
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#080d4f] leading-[1.1] mb-8">
-                  Shaping the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#079bd3] to-[#080d4f]">Future</span> of Computing
+                <h1 className="mb-6 text-[clamp(1.9rem,7vw,2.5rem)] font-extrabold leading-tight text-[#080d4f] sm:mb-8 sm:text-5xl lg:text-6xl">
+                  Shaping the <span className="text-[#080d4f] md:bg-gradient-to-r md:from-[#079bd3] md:to-[#080d4f] md:bg-clip-text md:text-transparent">Future</span> of Computing
                 </h1>
 
                 <div className="relative pl-6 border-l-4 border-[#079bd3]/30 space-y-6">
-                  <p className="text-lg sm:text-xl text-slate-600 leading-relaxed font-medium">
+                  <p className="text-base font-medium leading-relaxed text-slate-700 sm:text-xl">
                     "{content.bodyText1 || defaultAboutContent.bodyText1}"
                   </p>
-                  <p className="text-base sm:text-lg text-slate-500 leading-relaxed">
+                  <p className="text-sm leading-relaxed text-slate-700 sm:text-lg">
                     {content.bodyText2 || defaultAboutContent.bodyText2}
                   </p>
                 </div>
 
-                <div className="mt-10 flex flex-wrap gap-4">
-                  <button className="group inline-flex items-center gap-2 rounded-full bg-[#080d4f] px-8 py-4 text-sm font-bold text-white transition-all duration-300 hover:bg-[#079bd3] hover:shadow-lg hover:shadow-[#079bd3]/25 hover:-translate-y-1">
+                <div className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4">
+                  <button className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#080d4f] px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-[#079bd3] hover:shadow-lg hover:shadow-[#079bd3]/25 hover:-translate-y-1 sm:px-8 sm:py-4">
                     Explore Our Programs
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </button>
-                  <button className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-8 py-4 text-sm font-bold text-[#080d4f] transition-all duration-300 hover:border-[#080d4f] hover:bg-slate-50">
+                  <button className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-[#080d4f] transition-all duration-300 hover:border-[#080d4f] hover:bg-slate-50 sm:px-8 sm:py-4">
                     Contact Us
                   </button>
                 </div>
 
                 {/* Signature Area */}
-                <div className="mt-12 flex items-center gap-4">
+                <div className="mt-8 flex items-center gap-4 sm:mt-12">
                    <div className="h-px flex-1 bg-slate-200"></div>
                    <div className="text-right">
                       <p className="text-sm font-bold text-[#080d4f]">Head of Department</p>
