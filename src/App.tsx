@@ -19,6 +19,9 @@ import NewsPage from './News/NewsPage'
 import ContactPage from './Contact/ContactPage'
 import ResearchPage from './Research/ResearchPage'
 import EligibilityChecker from './components/EligibilityChecker'
+import GalleryPage from './Gallery/GalleryPage'
+import EventsPage from './Event/EventPage'
+import ClubsPage from './components/ClubsPage'
 
 function DropdownLoader({ label }: { label: string }) {
   const [progress, setProgress] = React.useState(0)
