@@ -24,12 +24,12 @@ interface Patron {
 const PATRONS: Record<string, Patron> = {
   "obed-appiah": {
     name: "Prof. Obed Appiah",
-    photo: "/public/tech3.jpg",
+    photo: "/obed-appiah.jpg",
     title: "Department of Computer Science & Informatics",
   },
   "peter-nimbe": {
     name: "Peter Nimbe",
-    photo: "/public/tech5.jpg",
+    photo: "/peter-nimbe.jpg",
     title: "Quantum Computing Lab",
   },
 };
