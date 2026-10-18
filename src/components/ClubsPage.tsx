@@ -53,7 +53,7 @@ const CLUBS: Club[] = [
     key: "software-engineering",
     name: "Software Engineering & DevOps",
     icon: Code2,
-    image: "/public/Software Engineering & DevOps.jpg",
+    image: "/Software Engineering & DevOps.jpg",
     description: [
       "The Software Engineering & DevOps Club focuses on the principles, practices, and tools used to design, develop, test, deploy, and maintain software.",
       "Members explore programming, software development methodologies, version control, CI/CD, automation, and collaborative development while working on practical projects.",
@@ -74,7 +74,7 @@ const CLUBS: Club[] = [
     key: "hci-ux-ui",
     name: "HCI, UX/UI",
     icon: Palette,
-    image: "/public/HCI, UXUI.jpg",
+    image: "/HCI, UXUI.jpg",
     description: [
       "The HCI, UX/UI Club focuses on Human-Computer Interaction (HCI) and User Experience/User Interface design. Members learn how to understand users, identify problems, conduct basic user research, create wireframes and prototypes, and design intuitive digital products.",
       "The club provides opportunities to explore design thinking and collaborate on real-world digital experiences that are useful, accessible, and easy to use.",
@@ -96,7 +96,7 @@ const CLUBS: Club[] = [
     key: "robotics-iot",
     name: "Robotics, IoT & Embedded Systems",
     icon: Bot,
-    image: "public/Robotics, IoT & Embedded Systems.jpg",
+    image: "/Robotics, IoT & Embedded Systems.jpg",
     description: [
       "The Robotics, IoT & Embedded Systems Club explores the development of intelligent systems that interact with the physical world. Members learn how hardware, software, sensors, and communication technologies work together to create automated and connected systems.",
       "Through practical projects and experimentation, students can develop solutions involving robotics, smart devices, automation, and embedded technologies.",
@@ -118,7 +118,7 @@ const CLUBS: Club[] = [
     key: "cloud-networking",
     name: "Cloud Computing & Networking",
     icon: Cloud,
-    image: "public/Cloud Computing & Networking.jpg",
+    image: "/Cloud Computing & Networking.jpg",
     description: [
       "The Cloud Computing & Networking Club focuses on the technologies that enable modern digital communication and cloud-based services. Members explore computer networks, network architecture, cloud platforms, distributed systems, and infrastructure management.",
       "The club provides opportunities to understand how devices and systems communicate and how applications and services are deployed and managed in cloud environments.",
@@ -140,7 +140,7 @@ const CLUBS: Club[] = [
     key: "ai-ml",
     name: "Artificial Intelligence & Machine Learning",
     icon: BrainCircuit,
-    image: "public/Artificial Intelligence & Machine Learning.jpg",
+    image: "/Artificial Intelligence & Machine Learning.jpg",
     description: [
       "The Artificial Intelligence & Machine Learning Club brings together students interested in building systems that can learn, reason, recognize patterns, and make predictions. Members explore fundamental AI and machine learning concepts through practical projects, experimentation, and discussions.",
       "The club encourages students to apply AI techniques to real-world challenges and develop an understanding of how intelligent systems are designed and evaluated.",
@@ -162,7 +162,7 @@ const CLUBS: Club[] = [
     key: "data-science",
     name: "Data Science, Big Data & Data Engineering",
     icon: Database,
-    image: "public/Data Science, Big Data & Data Engineering.jpg",
+    image: "/Data Science, Big Data & Data Engineering.jpg",
     description: [
       "The Data Science, Big Data & Data Engineering Club focuses on transforming raw data into useful information and insights. Members explore how data is collected, cleaned, stored, processed, analyzed, and visualized.",
       "The club provides opportunities to work with datasets and understand the technologies and processes used to build reliable data systems and support data-driven decision-making.",
@@ -184,7 +184,7 @@ const CLUBS: Club[] = [
     key: "cybersecurity",
     name: "Cybersecurity & Privacy",
     icon: ShieldCheck,
-    image: "public/Cybersecurity & Privacy.jpg",
+    image: "/Cybersecurity & Privacy.jpg",
     description: [
       "The Cybersecurity & Privacy Club focuses on understanding how digital systems, networks, applications, and information can be protected from security threats. Members explore cybersecurity principles, privacy protection, security awareness, ethical security practices, and common vulnerabilities through controlled learning environments and practical activities.",
       "The club promotes responsible security practices and helps students develop the knowledge needed to protect digital information and systems.",
@@ -206,7 +206,7 @@ const CLUBS: Club[] = [
     key: "algorithm-theory",
     name: "Algorithm & Theoretical Computing",
     icon: Binary,
-    image: "public/Algorithm & Theoretical Computing.jpg",
+    image: "/Algorithm & Theoretical Computing.jpg",
     description: [
       "The Algorithm & Theoretical Computing Club focuses on the fundamental principles behind efficient computation and problem-solving. Members explore algorithms, data structures, computational complexity, logic, and theoretical concepts that form the foundation of computer science.",
       "Through challenges and problem-solving activities, students develop the ability to analyze problems and design efficient computational solutions.",
@@ -228,7 +228,7 @@ const CLUBS: Club[] = [
     key: "quantum",
     name: "Quantum Computing",
     icon: Atom,
-    image: "public/Quantum Computing.jpg",
+    image: "/Quantum Computing.jpg",
     description: [
       "The Quantum Computing Club introduces students to the emerging field of quantum computing and its potential applications. Members explore fundamental concepts such as quantum bits, quantum states, quantum gates, and quantum algorithms while developing an understanding of how quantum computers differ from traditional computers.",
       "The club encourages exploration, experimentation, and discussion around emerging quantum technologies.",
