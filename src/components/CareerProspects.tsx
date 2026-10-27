@@ -66,8 +66,8 @@ const CareerProspects: React.FC = () => {
   return (
     <section className="relative w-full overflow-hidden bg-white px-5 py-16 sm:px-8 md:px-12 lg:px-16 xl:px-20">
       {/* Background Blobs */}
-      <div className="pointer-events-none absolute -left-32 top-10 h-72 w-72 rounded-full bg-[#0798D2]/5 blur-3xl transition-opacity duration-1000" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-[#203B82]/5 blur-3xl transition-opacity duration-1000" />
+      <div className="pointer-events-none absolute -left-32 top-10 hidden h-72 w-72 rounded-full bg-[#0798D2]/5 blur-3xl transition-opacity duration-1000 sm:block" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 hidden h-80 w-80 rounded-full bg-[#203B82]/5 blur-3xl transition-opacity duration-1000 sm:block" />
 
       <div className="relative mx-auto max-w-[1180px]">
         
@@ -78,7 +78,7 @@ const CareerProspects: React.FC = () => {
             headerReveal.isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
           }`}
         >
-          <div className="mb-4 h-1 w-10 rounded-full bg-[#0798D2]" />
+          <div className="mb-4 hidden h-1 w-10 rounded-full bg-[#0798D2] sm:block" />
 
           <h2
             className="
@@ -139,7 +139,7 @@ const CareerProspects: React.FC = () => {
                     overflow-hidden
                     rounded-[17px]
                     border
-                    border-transparent
+                    border-slate-200
                     px-5
                     py-4
                     text-center
@@ -149,16 +149,13 @@ const CareerProspects: React.FC = () => {
                     focus:outline-none
                     focus-visible:ring-4
                     focus-visible:ring-[#0798D2]/20
-                    ${
-                      isActive
-                        ? "scale-[0.98] border-[#0798D2] bg-[#0798D2] shadow-[0_14px_30px_rgba(7,152,210,0.22)]"
-                        : "bg-[#E8F8FC] hover:-translate-y-1 hover:border-[#0798D2] hover:bg-[#0798D2] hover:shadow-[0_14px_32px_rgba(7,152,210,0.20)]"
-                    }
+                    bg-white md:hover:-translate-y-1 md:hover:border-[#0798D2] md:hover:bg-[#0798D2] md:hover:shadow-[0_14px_32px_rgba(7,152,210,0.20)]
+                    ${isActive ? "md:scale-[0.98] md:border-[#0798D2] md:bg-[#0798D2] md:shadow-[0_14px_30px_rgba(7,152,210,0.22)]" : ""}
                   `}
                 >
                   <span
                     className="
-                      pointer-events-none
+                      pointer-events-none hidden md:block
                       absolute
                       -left-20
                       top-0
@@ -169,14 +166,14 @@ const CareerProspects: React.FC = () => {
                       opacity-0
                       transition-all
                       duration-700
-                      group-hover:left-[120%]
-                      group-hover:opacity-100
+                      md:group-hover:left-[120%]
+                      md:group-hover:opacity-100
                     "
                   />
 
                   <span
                     className={`
-                      pointer-events-none
+                      pointer-events-none hidden md:block
                       absolute
                       -right-8
                       -top-8
@@ -206,8 +203,8 @@ const CareerProspects: React.FC = () => {
                       md:text-[18px]
                       ${
                         isActive
-                          ? "text-white"
-                          : "text-[#080B50] group-hover:text-white"
+                          ? "text-[#080B50] md:text-white"
+                          : "text-[#080B50] md:group-hover:text-white"
                       }
                     `}
                   >
@@ -219,7 +216,7 @@ const CareerProspects: React.FC = () => {
                       absolute
                       right-4
                       z-10
-                      flex
+                      hidden
                       h-7
                       w-7
                       items-center
@@ -227,7 +224,7 @@ const CareerProspects: React.FC = () => {
                       rounded-full
                       transition-all
                       duration-300
-                      ${
+                      md:flex ${
                         isActive
                           ? "translate-x-0 bg-white text-[#0798D2] opacity-100"
                           : "translate-x-2 bg-white text-[#0798D2] opacity-0 group-hover:translate-x-0 group-hover:opacity-100"

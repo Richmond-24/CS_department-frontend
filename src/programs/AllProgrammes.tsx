@@ -1,3 +1,4 @@
+
 import { ArrowRight, GraduationCap, BookOpen } from "lucide-react";
 
 const programmes = [
@@ -124,18 +125,15 @@ export default function Programmes() {
               >
                 {/* Image */}
                 <div className="w-full lg:w-[48%]">
-                  <div className="group relative mx-auto max-w-[560px] overflow-hidden rounded-xl">
+                  <div className="group relative mx-auto max-w-[560px] overflow-hidden rounded-xl shadow-lg">
                     <img
                       src={programme.image}
                       alt={programme.imageAlt}
                       className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
 
-                    {/* Image overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#06145b]/30 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-                    {/* Number */}
-                    <div className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-lg bg-white/95 text-lg font-bold text-[#080d4f] shadow-lg">
+                    {/* Number Badge */}
+                    <div className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-lg bg-white/95 text-lg font-bold text-[#080d4f] shadow-lg backdrop-blur-sm">
                       0{index + 1}
                     </div>
                   </div>
@@ -242,7 +240,7 @@ export default function Programmes() {
       {/* =========================================================
           START YOUR JOURNEY
       ========================================================= */}
-      <section className="relative min-h-[520px] overflow-hidden md:min-h-[580px] lg:min-h-[620px]">
+      <section className="relative min-h-[520px] overflow-hidden md:min-h-[580px] lg:min-h-[620px] pb-24 md:pb-32 lg:pb-36">
         <img
           src="c.jpg"
           alt="Computer Science students working together"
@@ -292,6 +290,8 @@ export default function Programmes() {
           </div>
         </div>
       </section>
+      {/* Spacer to ensure visual gap above the footer */}
+      <div aria-hidden="true" className="h-24 md:h-32 lg:h-36" />
     </main>
   );
 }

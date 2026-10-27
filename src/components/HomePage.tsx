@@ -14,7 +14,7 @@ type Slide = {
   buttonLink: string;
 };
 
-const slides: Slide[] = [
+const fallbackSlides: Slide[] = [
   {
     image: "/img1.webp",
     eyebrow: "COMPUTER SCIENCE & INFORMATICS",
@@ -106,11 +106,71 @@ const slides: Slide[] = [
   },
 ];
 
+const normalizeHeroSlide = (record: any, index: number): Slide => {
+  const titleText = String(record?.title || record?.heading || record?.headline || `Hero slide ${index + 1}`);
+  const lines = titleText.split(/\s*\n\s*/).filter(Boolean);
+
+  const title = lines.length > 1 ? (
+    <>
+      {lines.map((line, lineIndex) => (
+        <React.Fragment key={`${line}-${lineIndex}`}>
+          {lineIndex > 0 && <br />}
+          {line}
+        </React.Fragment>
+      ))}
+    </>
+  ) : (
+    <>{titleText}</>
+  );
+
+  return {
+    image: record?.image_url || record?.imageUrl || record?.image || record?.image_path || '/img1.webp',
+    eyebrow: record?.eyebrow || record?.tag || record?.category || 'COMPUTER SCIENCE & INFORMATICS',
+    title,
+    description:
+      record?.description || record?.subtitle || record?.subheading || 'Explore opportunities to study, innovate and grow with us.',
+    button: record?.button_text || record?.buttonText || record?.cta_text || 'Explore Programmes',
+    buttonLink: record?.button_link || record?.buttonLink || record?.cta_link || '#programmes',
+  };
+};
+
 const Home = () => {
+  const [slides, setSlides] = useState<Slide[]>(fallbackSlides);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSlides = async () => {
+      try {
+        const response = await fetch('https://uenr-csisd-backend.onrender.com/api/v1/heroes/active');
+        if (!response.ok) {
+          throw new Error('Unable to fetch active heroes');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
+
+        if (isMounted && items.length) {
+          setSlides(items.map((record: any, index: number) => normalizeHeroSlide(record, index)));
+          setCurrentSlide(0);
+        }
+      } catch {
+        if (isMounted) {
+          setSlides(fallbackSlides);
+          setCurrentSlide(0);
+        }
+      }
+    };
+
+    loadSlides();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   /* Mount animation */
   useEffect(() => {
@@ -172,13 +232,13 @@ const Home = () => {
   return (
     <main
       className="w-full bg-white text-[#060740]"
-      style={{ fontFamily: "Lufga, sans-serif" }}
+      style={{ fontFamily: "'Lufga', sans-serif", fontWeight: 700 }}
     >
       {/* =====================================================
           HERO SLIDER
       ===================================================== */}
       <section
-        className="relative h-[560px] overflow-hidden lg:h-[650px]"
+        className="relative h-[540px] overflow-hidden sm:h-[560px] lg:h-[650px]"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
@@ -239,7 +299,7 @@ const Home = () => {
         <div className="relative z-20 mx-auto flex h-full max-w-[1400px] items-center px-6 lg:px-16">
           <div
             key={currentSlide}
-            className="max-w-[760px]"
+            className="w-full max-w-[760px]"
           >
             {/* Eyebrow with line animation */}
             <div 
@@ -265,6 +325,8 @@ const Home = () => {
                   transform: mounted ? 'translateX(0)' : 'translateX(-20px)',
                   transition: 'all 0.7s ease-out',
                   transitionDelay: '400ms',
+                  fontFamily: "'Lufga', sans-serif",
+                  fontWeight: 700,
                 }}
               >
                 {slide.eyebrow}
@@ -273,12 +335,14 @@ const Home = () => {
 
             {/* Main heading with staggered word animation */}
             <h1 
-              className="text-[44px] font-bold leading-[1.03] tracking-[-2px] text-white sm:text-[56px] lg:text-[68px]"
+              className="break-words text-[clamp(2rem,8.5vw,2.5rem)] font-bold leading-[1.08] tracking-[-1px] text-white sm:text-[56px] sm:leading-[1.03] sm:tracking-[-2px] lg:text-[68px]"
               style={{
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateY(0)' : 'translateY(30px)',
                 transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 transitionDelay: '500ms',
+                fontFamily: "'Lufga', sans-serif",
+                fontWeight: 700,
               }}
             >
               {slide.title}
@@ -286,12 +350,14 @@ const Home = () => {
 
             {/* Description with fade-up */}
             <p 
-              className="mt-6 max-w-[610px] text-[16px] font-medium leading-7 text-white/95 sm:text-[19px]"
+              className="mt-4 max-w-[610px] text-[15px] font-medium leading-6 text-white/95 sm:mt-6 sm:text-[19px] sm:leading-7"
               style={{
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateY(0)' : 'translateY(20px)',
                 transition: 'all 0.7s ease-out',
                 transitionDelay: '600ms',
+                fontFamily: "'Lufga', sans-serif",
+                fontWeight: 500,
               }}
             >
               {slide.description}
@@ -299,7 +365,7 @@ const Home = () => {
 
             {/* CTA with hover effects */}
             <div 
-              className="mt-8"
+              className="mt-6 sm:mt-8"
               style={{
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateY(0)' : 'translateY(20px)',
@@ -309,7 +375,7 @@ const Home = () => {
             >
               <a
                 href={slide.buttonLink}
-                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-lg bg-[#0387C5] px-7 py-4 text-[16px] font-semibold text-white shadow-lg transition-all duration-500 hover:-translate-y-1 hover:bg-[#18337a] hover:shadow-xl active:scale-95"
+                className="group relative inline-flex items-center gap-3 overflow-hidden rounded-lg bg-[#0387C5] px-5 py-3 text-[15px] font-semibold text-white shadow-lg transition-all duration-500 hover:-translate-y-1 hover:bg-[#18337a] hover:shadow-xl active:scale-95 sm:px-7 sm:py-4 sm:text-[16px]"
                 style={{
                   boxShadow: '0 10px 30px rgba(3,135,197,0.3)',
                 }}

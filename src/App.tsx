@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowLeft, ArrowRight, Bell, BookOpenText, House, Info, Newspaper, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, BookOpenText, House, Info, Newspaper, X, Loader2 } from 'lucide-react'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import HomePage from './components/HomePage'
@@ -19,13 +19,64 @@ import NewsPage from './News/NewsPage'
 import ContactPage from './Contact/ContactPage'
 import ResearchPage from './Research/ResearchPage'
 import EligibilityChecker from './components/EligibilityChecker'
+import GalleryPage from './Gallery/GalleryPage'
+import EventsPage from './Event/EventPage'
 import ClubsPage from './components/ClubsPage'
 
 function DropdownLoader({ label }: { label: string }) {
+  const [progress, setProgress] = React.useState(0)
+
+  React.useEffect(() => {
+    let raf = 0
+    const start = performance.now()
+    const duration = 800 
+
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setProgress(eased * 100)
+
+      if (t < 1) {
+        raf = requestAnimationFrame(tick)
+      }
+    }
+
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
   return (
-    <div className="route-loader" aria-live="polite" aria-label={`${label} loading`}>
-      <div className="route-loader__spinner" aria-hidden="true" />
-      <p className="route-loader__label">Loading {label}...</p>
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white transition-all duration-500">
+      
+      {/* Floating Elements - No Box */}
+      <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-500">
+        
+        {/* Minimal Spinner */}
+        <div className="relative">
+           <div className="absolute inset-0 rounded-full bg-[#079bd3]/20 blur-xl animate-pulse" />
+           <Loader2 className="relative h-12 w-12 text-[#079bd3] animate-spin" strokeWidth={2} />
+        </div>
+
+        {/* Text Label */}
+        <div className="text-center space-y-1">
+          <h2 className="text-2xl font-bold text-[#080d4f] tracking-tight">
+            {label}
+          </h2>
+          <p className="text-sm font-medium text-slate-500">
+            Loading content...
+          </p>
+        </div>
+
+        {/* Sleek Progress Bar */}
+        <div className="w-64 h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-[#079bd3] rounded-full transition-all duration-100 ease-linear"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+      </div>
+
     </div>
   )
 }
@@ -371,8 +422,6 @@ function App() {
               ? '/resources/internship'
               : '/resources'
 
-  const newsPath = activeRoute === '#media' ? '/media' : '/news'
-
   const renderPage = () => {
     switch (activeRoute) {
       case '#home':
@@ -411,10 +460,12 @@ function App() {
         return <ResourcesPage currentPath={resourcesPath} />
       case '#news':
       case '#media':
-      case '#gallery':
-      case '#events':
       case '#announcements':
-        return <NewsPage currentPath={newsPath} />
+        return <NewsPage />
+      case '#gallery':
+        return <GalleryPage />
+      case '#events':
+        return <EventsPage />
       case '#contact':
       case '#apply':
         return <ContactPage />
@@ -474,7 +525,7 @@ function App() {
       },
       { threshold: 0.12, rootMargin: '0px 0px -10% 0px' }
     )
-
+     
     pageElements.forEach((element) => observer.observe(element))
 
     return () => observer.disconnect()

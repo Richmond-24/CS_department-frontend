@@ -8,7 +8,6 @@ import {
   GraduationCap,
   BookOpen,
   ArrowLeft,
-  Send,
 } from "lucide-react";
 
 /* -------------------------------------------------------
@@ -416,7 +415,7 @@ const PersonProfile: React.FC = () => {
             ================================================== */}
         <section className="rounded-md bg-[#dff6fc] px-5 py-7 sm:px-8">
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-8">
 
             {/* ---------------------------------------------
                 Contact information
@@ -504,50 +503,6 @@ const PersonProfile: React.FC = () => {
 
               </div>
             </div>
-
-
-            {/* ---------------------------------------------
-                Contact form
-                --------------------------------------------- */}
-            <div>
-
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-                className="space-y-3"
-              >
-
-                <input
-                  type="text"
-                  placeholder="Name"
-                  className="h-9 w-full rounded-md border border-white bg-white px-3 text-[10px] outline-none transition placeholder:text-gray-400 focus:border-[#078bc5]"
-                />
-
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="h-9 w-full rounded-md border border-white bg-white px-3 text-[10px] outline-none transition placeholder:text-gray-400 focus:border-[#078bc5]"
-                />
-
-                <textarea
-                  placeholder="Message"
-                  rows={4}
-                  className="w-full resize-none rounded-md border border-white bg-white px-3 py-2 text-[10px] outline-none transition placeholder:text-gray-400 focus:border-[#078bc5]"
-                />
-
-                <button
-                  type="submit"
-                  className="flex h-9 w-full items-center justify-center gap-2 rounded-md bg-[#078bc5] text-[10px] font-semibold text-white transition hover:bg-[#0679aa]"
-                >
-                  <Send size={13} />
-                  Send Message
-                </button>
-
-              </form>
-
-            </div>
-
           </div>
         </section>
 

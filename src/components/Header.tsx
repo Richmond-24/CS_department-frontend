@@ -441,7 +441,7 @@ const Header: React.FC<HeaderProps> = ({
                 setOpenMobileSection(null);
               }
             }}
-            className="group relative z-[120] flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-50 transition-all duration-200 hover:bg-[#e6f7ff] active:scale-90 md:hidden"
+            className="group relative z-[120] flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:bg-[#e6f7ff] active:scale-90 md:hidden"
             aria-label={
               mobileOpen
                 ? "Close navigation"
@@ -541,27 +541,7 @@ const Header: React.FC<HeaderProps> = ({
                 MOBILE MENU HEADER
             ================================================= */}
 
-            <div className="flex h-[82px] items-center justify-between border-b border-white/10 px-5">
-
-
-              <button
-                type="button"
-                onClick={closeMobileMenu}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all duration-200 hover:bg-white/10 active:scale-90"
-                aria-label="Close navigation"
-              >
-
-                <span className="relative h-5 w-5">
-
-                  <span className="absolute left-0 top-1/2 h-[2px] w-5 rotate-45 rounded-full bg-white" />
-
-                  <span className="absolute left-0 top-1/2 h-[2px] w-5 -rotate-45 rounded-full bg-white" />
-
-                </span>
-
-              </button>
-
-            </div>
+            <div className="h-[82px] border-b border-white/10" aria-hidden="true" />
 
 
 
