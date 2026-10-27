@@ -6,10 +6,17 @@ import {ArrowRight,ChevronDown,User,Code2,Palette,Bot,Cloud,BrainCircuit,Databas
 // ===========================================================================
 
 /** Google Form URL for club registration. Swap in the real form link when ready. */
-const REGISTER_URL = "#";
+const REGISTER_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdjVJ0JkSVW_eKBbtrxRJSUKnFhfMSWclUB2OLyusUb6xOy-w/viewform";
 
 /** Served straight from /public, so this is a plain root-relative path, not an import. */
 const HERO_IMAGE = "/clubs_hero.jpg";
+
+/**
+ * Master switch for the Patron section.
+ * Keep false until patron details are confirmed for the clubs.
+ * Set to true to show patrons (only for clubs that have a patronKey).
+ */
+const SHOW_PATRONS = false;
 
 // ===========================================================================
 // PATRONS — single source of truth, referenced by key from each club
@@ -45,7 +52,8 @@ interface Club {
   image: string;
   description: string[];
   skills: string[];
-  patronKey: keyof typeof PATRONS;
+  /** Optional: add a key from PATRONS once the patron is confirmed for this club. */
+  patronKey?: keyof typeof PATRONS;
 }
 
 const CLUBS: Club[] = [
@@ -374,7 +382,9 @@ export default function ClubsPage() {
 // ===========================================================================
 
 function ClubDetails({ club }: { club: Club }) {
-  const patron = PATRONS[club.patronKey];
+  // Patron is only resolved when the global switch is on AND this club has a key.
+  const patron =
+    SHOW_PATRONS && club.patronKey ? PATRONS[club.patronKey] : undefined;
 
   return (
     <div className="flex w-full min-h-[420px] flex-col bg-[#0387C5]/[0.12]">
@@ -451,7 +461,7 @@ function ClubDetails({ club }: { club: Club }) {
           </>
         )}
 
-        {/* Patron */}
+        {/* Patron — hidden entirely (divider, heading, avatar) when patron is undefined */}
         {patron && (
           <>
             <div className="my-5 border-t border-[#0387C5]/[0.30] sm:my-6" />
